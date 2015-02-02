@@ -19,6 +19,14 @@ Library HardCamlReedsolomon
   BuildDepends:  hardcaml,hardcaml.syntax,reedsolomon
   XMETARequires: hardcaml,reedsolomon
 
+Executable encode
+  Path:               test
+  MainIs:             encode.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+
 SourceRepository master
   Type:     git
   Location: https://github.com/ujamjar/hardcaml-reedsolomon.git

@@ -15,7 +15,7 @@ module type S = sig
         val encoder : enable:t -> ctrl:t -> d_in:t -> t
         module I : interface enable ctrl d end
         module O : interface q end
-        val encoder_if : t I.t -> t O.t 
+        val f : t I.t -> t O.t 
 
     end
 
@@ -96,7 +96,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
         module I = interface enable[1] ctrl[1] d[Gfh.bits] end
         module O = interface q[Gfh.bits] end
 
-        let encoder_if i = O.({ q = I.(encoder i.enable i.ctrl i.d) })
+        let f i = O.({ q = I.(encoder i.enable i.ctrl i.d) })
 
     end
 
