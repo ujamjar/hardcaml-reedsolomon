@@ -1,0 +1,24 @@
+# OASIS_START
+# DO NOT EDIT (digest: 34bbd6b56cf718d893130da1aa3fa5b0)
+# Ignore VCS directories, you can use the same kind of rule outside
+# OASIS_START/STOP if you want to exclude directories that contains
+# useless stuff for the build process
+true: annot, bin_annot
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library HardCamlReedsolomon
+"src/HardCamlReedsolomon.cmxs": use_HardCamlReedsolomon
+"src/galois.cmx": for-pack(HardCamlReedsolomon)
+"src/codec.cmx": for-pack(HardCamlReedsolomon)
+<src/*.ml{,i,y}>: pkg_hardcaml
+<src/*.ml{,i,y}>: pkg_hardcaml.syntax
+<src/*.ml{,i,y}>: pkg_reedsolomon
+# OASIS_STOP

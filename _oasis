@@ -1,0 +1,25 @@
+OASISFormat: 0.4
+Name:        hardcaml-reedsolomon
+Version:     0.1
+Synopsis:    HardCaml Reed-Solomon error correction CODEC
+Description: HardCaml Reed-Solomon error correction CODEC
+
+Authors:     Andy Ray
+Maintainers: Andy Ray <andy.ray@unjamjar.org>
+Homepage:    https://github.com/ujamjar/hardcaml-reedsolomon
+License:     ISC
+Plugins:     META (0.4)
+BuildTools:  ocamlbuild
+
+Library HardCamlReedsolomon
+  Path:          src
+  Findlibname:   hardcaml-reedsolomon
+  Pack:          true
+  Modules:       Galois, Codec
+  BuildDepends:  hardcaml,hardcaml.syntax,reedsolomon
+  XMETARequires: hardcaml,reedsolomon
+
+SourceRepository master
+  Type:     git
+  Location: https://github.com/ujamjar/hardcaml-reedsolomon.git
+  Browser:  https://github.com/ujamjar/hardcaml-reedsolomon
