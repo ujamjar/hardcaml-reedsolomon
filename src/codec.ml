@@ -8,7 +8,7 @@ module Seq = Signal.Make_seq(struct
     let ram_spec = Signal.Seq.r_none
 end)
 
-module type Rshw = sig
+module type S = sig
     open Signal.Comb
 
     module Encoder : sig
@@ -23,20 +23,19 @@ module type Rshw = sig
         module type N = sig val n : int end
         val syndrome : root:int -> enable:t -> first:t -> x:t -> t
         val syndromes : enable:t -> first:t -> x:t -> t array
-        val psyndrome : clear:t -> enable:t -> n:int -> root:int -> x:t array -> t 
-        val psyndromes : clear:t -> enable:t -> n:int -> x:t array -> t array
+        val psyndromes : clear:t -> enable:t -> first:t -> last:t -> x:t array -> t * t array
         module PSyndromes(N : N) : sig
           module I : interface clear enable first last x{| |} end
-          module O : interface valid y{| |} end
+          module O : interface valid syndromes{| |} end
           val f : t I.t -> t O.t
         end
 
         val iBM : clear:t -> enable:t -> start:t -> syndromes:t list -> t list
         val riBM : clear:t -> enable:t -> start:t -> syndromes:t list -> t list
-        val rriBM : clear:t -> enable:t -> start:t -> syndromes:t list -> t list
+        val rriBM : clear:t -> enable:t -> first:t -> last:t -> syndromes:t list -> t list * t list
         module RiBM : sig
-          module I : interface clear enable first last syndromes{| |} end
-          module O : interface w{| |} l{| |} end
+          module I : interface clear enable first last syndromes{ } end
+          module O : interface w{ } l{ } end
           val f : t I.t -> t O.t
         end
 
