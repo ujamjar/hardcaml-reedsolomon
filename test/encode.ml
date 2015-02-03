@@ -11,6 +11,7 @@ module Sw = Reedsolomon.Codec.BBCTest
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
 module G = Interface.Gen(Hw.Encoder.I)(Hw.Encoder.O)
 
+(* configure waveform display *)
 let cfg = 
   let open Waveterm_waves in
   let open Hw.Encoder in
@@ -26,31 +27,35 @@ let test () =
   let () = if false then HardCaml.Rtl.Verilog.write print_string circ in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
 
-  let rev a = let len = Array.length a in Array.init len (fun i -> a.(len - i - 1)) in
-  let parity_sw data = rev (Sw.R.R.slice  (Sw.R.parity (rev data)) (2*Sw.Rp.t-1)) in
-
+  (* execute encoder *)
   let parity_tb data = 
+    (* load data *)
     i.ctrl := B.gnd;
     for j=0 to Sw.Rp.k-1 do
       i.d := B.consti 4 data.(j);
       Cs.cycle sim;
     done;
+    (* read parity *)
     i.ctrl := B.vdd;
     Array.init (Sw.Rp.t*2) (fun _ -> let r = B.to_int !(o.q) in Cs.cycle sim; r) 
   in
 
+  (* reset/clear and enable *)
   Cs.reset sim;
   i.enable := B.vdd;
   (Cs.in_port sim "clear") := B.vdd;
   Cs.cycle sim;
   (Cs.in_port sim "clear") := B.gnd;
+
   (* compare 100 messages back to back *)
   for j=0 to 100 do
-    let data = Array.init Sw.Rp.k (fun j -> Random.int 16) in
-    if parity_tb data <> parity_sw data then begin
+    let data = Rsutil.message () in
+    let parity_tb = parity_tb data in
+    let parity_sw = Rsutil.parity data in
+    if parity_tb <> parity_sw then begin
       Array.iter (Printf.printf "%i ") data; Printf.printf "\n";
-      Array.iter (Printf.printf "%i ") (parity_tb data); Printf.printf "\n";
-      Array.iter (Printf.printf "%i ") (parity_sw data); Printf.printf "\n";
+      Array.iter (Printf.printf "%i ") parity_tb; Printf.printf "\n";
+      Array.iter (Printf.printf "%i ") parity_sw; Printf.printf "\n";
     end
   done;
   Lwt_main.run (Waveterm_ui.run Waveterm_waves.({ cfg=default; waves }))

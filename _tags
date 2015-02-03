@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 1fbeb97c698be4692a7a93e0959a5488)
+# DO NOT EDIT (digest: 9fdfeda38bb73f9a5d8fe60126fc827a)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -27,10 +27,17 @@ true: annot, bin_annot
 <test/encode.{native,byte}>: pkg_hardcaml.syntax
 <test/encode.{native,byte}>: pkg_reedsolomon
 <test/encode.{native,byte}>: use_HardCamlReedsolomon
+<test/encode.{native,byte}>: custom
+# Executable syndromes
+<test/syndromes.{native,byte}>: pkg_hardcaml
+<test/syndromes.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/syndromes.{native,byte}>: pkg_hardcaml.syntax
+<test/syndromes.{native,byte}>: pkg_reedsolomon
+<test/syndromes.{native,byte}>: use_HardCamlReedsolomon
 <test/*.ml{,i,y}>: pkg_hardcaml
 <test/*.ml{,i,y}>: pkg_hardcaml-waveterm.lterm
 <test/*.ml{,i,y}>: pkg_hardcaml.syntax
 <test/*.ml{,i,y}>: pkg_reedsolomon
 <test/*.ml{,i,y}>: use_HardCamlReedsolomon
-<test/encode.{native,byte}>: custom
+<test/syndromes.{native,byte}>: custom
 # OASIS_STOP

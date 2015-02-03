@@ -27,6 +27,14 @@ Executable encode
   Install:            false
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
+Executable syndromes
+  Path:               test
+  MainIs:             syndromes.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+
 SourceRepository master
   Type:     git
   Location: https://github.com/ujamjar/hardcaml-reedsolomon.git
