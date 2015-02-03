@@ -35,6 +35,14 @@ Executable syndromes
   Install:            false
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
+Executable berlekamp
+  Path:               test
+  MainIs:             berlekamp.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+
 SourceRepository master
   Type:     git
   Location: https://github.com/ujamjar/hardcaml-reedsolomon.git

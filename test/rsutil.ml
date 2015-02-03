@@ -43,4 +43,8 @@ let (^.) a b = Array.init (Array.length a) (fun i -> a.(i) lxor b.(i))
 
 let syndromes recv = Sw.R.R.slice (Sw.R.syndromes (rev recv)) (2*t-1)
 
+let berlekamp syn = Sw.R.Sarwate.rriBM syn
+
 let dump a = Array.iter (Printf.printf "%i ") a; Printf.printf "\n"
+
+

@@ -1,3 +1,11 @@
+(* reed-solomon decoder syndrome calculation testbench 
+ *
+ * Compares sw to hw.
+ *
+ * The syndrome hardware supports parallel inputs, which isn't 
+ * tested here (yet) 
+ *)
+
 open HardCaml.Api
 open HardCamlWaveLTerm.Api
 

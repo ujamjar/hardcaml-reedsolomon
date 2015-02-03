@@ -251,7 +251,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
             let delta'' = Gfh.( (delta *: theta) +: (delta' *: gamma) ) in
             let delta' = Seq.reg ~c:clear ~e:enable 
                                  (mux2 first syndrome delta'') in
-            delta', Seq.reg ~c:clear ~e:(last -- "pe1_2_en") delta''
+            delta', Seq.reg ~c:clear ~e:last delta''
 
         (* *)
         let pe1s_2 clear enable first last gamma syndromes delta mc = 
@@ -330,7 +330,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
 
         module RiBM = struct
             module I = interface clear[1] enable[1] first[1] last[1] syndromes{2*Rp.t}[Gfh.bits] end
-            module O = interface w{Rp.t}[Gfh.bits] l{Rp.t}[Gfh.bits] end
+            module O = interface w{Rp.t}[Gfh.bits] l{Rp.t+1}[Gfh.bits] end
             let f i = 
                 let w, l = I.(rriBM ~clear:i.clear ~enable:i.enable 
                                     ~first:i.first ~last:i.last
