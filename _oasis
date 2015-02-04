@@ -43,6 +43,22 @@ Executable berlekamp
   Install:            false
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
+Executable chien
+  Path:               test
+  MainIs:             chien.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+
+Executable forney
+  Path:               test
+  MainIs:             forney.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+
 SourceRepository master
   Type:     git
   Location: https://github.com/ujamjar/hardcaml-reedsolomon.git

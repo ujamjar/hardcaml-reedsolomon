@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7665724de0b55f570505fc2d3937c116)
+# DO NOT EDIT (digest: cb4f9359bc50b5744316af2996851fc0)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -41,10 +41,24 @@ true: annot, bin_annot
 <test/berlekamp.{native,byte}>: pkg_hardcaml.syntax
 <test/berlekamp.{native,byte}>: pkg_reedsolomon
 <test/berlekamp.{native,byte}>: use_HardCamlReedsolomon
+<test/berlekamp.{native,byte}>: custom
+# Executable chien
+<test/chien.{native,byte}>: pkg_hardcaml
+<test/chien.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/chien.{native,byte}>: pkg_hardcaml.syntax
+<test/chien.{native,byte}>: pkg_reedsolomon
+<test/chien.{native,byte}>: use_HardCamlReedsolomon
+<test/chien.{native,byte}>: custom
+# Executable forney
+<test/forney.{native,byte}>: pkg_hardcaml
+<test/forney.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/forney.{native,byte}>: pkg_hardcaml.syntax
+<test/forney.{native,byte}>: pkg_reedsolomon
+<test/forney.{native,byte}>: use_HardCamlReedsolomon
 <test/*.ml{,i,y}>: pkg_hardcaml
 <test/*.ml{,i,y}>: pkg_hardcaml-waveterm.lterm
 <test/*.ml{,i,y}>: pkg_hardcaml.syntax
 <test/*.ml{,i,y}>: pkg_reedsolomon
 <test/*.ml{,i,y}>: use_HardCamlReedsolomon
-<test/berlekamp.{native,byte}>: custom
+<test/forney.{native,byte}>: custom
 # OASIS_STOP

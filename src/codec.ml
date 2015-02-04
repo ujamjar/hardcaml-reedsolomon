@@ -350,6 +350,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
             let l = Utils.mapi f lambda in
             tree 2 (reduce Gfh.(+:)) l
 
+        (* produces error location results in reverse order ie from [n_elem-2 ... 0] *)
         let pchien ~p ~clear ~enable ~start ~lambda = 
             let lambda' = Array.map (fun _ -> wire Gfh.bits) lambda in
             let f i j l  = Gfh.cmul (Gfs.antilog (i*j)) l in

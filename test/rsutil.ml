@@ -20,10 +20,10 @@ let rev a =
   Array.init len (fun i -> a.(len - i - 1))
 
 (* codeword from message *)
-let codeword message = rev @@ Sw.R.R.slice (Sw.R.encode (rev @@ message)) (n-1) 
+let codeword message = Sw.R.R.slice (Sw.R.encode message) (n-1) 
 
 (* parity of message *)
-let parity message = rev @@ Sw.R.R.slice (Sw.R.parity (rev @@ message)) (2*t-1)
+let parity message = Sw.R.R.slice (Sw.R.parity message) (2*t-1)
 
 let rand_sort a = 
   for i=(Array.length a - 1) downto 1 do
@@ -41,10 +41,14 @@ let error e =
 
 let (^.) a b = Array.init (Array.length a) (fun i -> a.(i) lxor b.(i))
 
-let syndromes recv = Sw.R.R.slice (Sw.R.syndromes (rev recv)) (2*t-1)
+let syndromes recv = Sw.R.R.slice (Sw.R.syndromes recv) (2*t-1)
 
 let berlekamp syn = Sw.R.Sarwate.rriBM syn
 
-let dump a = Array.iter (Printf.printf "%i ") a; Printf.printf "\n"
+let chien l = Sw.R.chien l
+
+let err_loc l = Sw.R.error_location l
+
+let dump a = Array.iter (Printf.printf "%2i ") a; Printf.printf "\n"
 
 
