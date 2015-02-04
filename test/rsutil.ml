@@ -4,6 +4,7 @@ module Sw = Reedsolomon.Codec.BBCTest
 (* rs code params *)
 let k = Sw.Rp.k
 let t = Sw.Rp.t
+let b = Sw.Rp.b
 let n = k + t + t
 
 (* number of field elements *)

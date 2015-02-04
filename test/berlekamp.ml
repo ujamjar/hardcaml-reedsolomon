@@ -46,7 +46,7 @@ let test () =
 
   i.first := B.vdd;
   for j=0 to 2*Rsutil.t-1 do
-    (List.nth i.syndromes j) := B.consti sbits syndromes.(j);
+    i.syndromes.(j) := B.consti sbits syndromes.(j);
   done;
   for j=0 to 2*Rsutil.t do
     if j=(2*Rsutil.t) then begin

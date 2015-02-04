@@ -25,7 +25,7 @@ let test () =
   let error = error 2 in
   let received = codeword ^. error in
   let syndromes = syndromes received in
-  let w, l = berlekamp syndromes in
+  let v, l = berlekamp syndromes in
   let ch = chien l in
   let el = List.map err_loc ch in
 
@@ -33,7 +33,7 @@ let test () =
   dump error;
   dump received;
   dump syndromes;
-  dump w;
+  dump v;
   dump l;
   dump (Array.of_list ch);
   dump (Array.of_list el);

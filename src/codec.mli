@@ -32,8 +32,8 @@ module type S = sig
         val rriBM : clear:t -> enable:t -> first:t -> last:t -> syndromes:t list -> t list * t list
 
         module RiBM : sig
-          module I : interface clear enable first last syndromes{ } end
-          module O : interface w{ } l{ } end
+          module I : interface clear enable first last syndromes{| |} end
+          module O : interface w{| |} l{| |} end
           val f : t I.t -> t O.t
         end
 
@@ -48,13 +48,29 @@ module type S = sig
         end
 
         (* forney *)
-        val forney : clear:t -> enable:t -> start:t -> store:t -> ctrl:t -> tap:t -> x:t -> t
+        val forney_serial : clear:t -> enable:t -> start:t -> store:t -> ctrl:t -> tap:t -> x:t -> t
         
-        module Forney : sig
+        module Forney_serial : sig
           module I : interface clear enable start store ctrl tap x end
           module O : interface e end
           val f : t I.t -> t O.t
         end
+
+        val forney : clear:t -> enable:t -> v:t array -> l:t array -> x:t -> t
+        module Forney : sig
+          module I : interface clear enable v{| |} l{| |} x end
+          module O : interface e end
+          val f : t I.t -> t O.t
+        end
+  
+        val decode : p:int -> clear:t -> enable:t -> first:t -> last:t -> x:t array ->
+          t array * t array * t
+        module Decode(N:N) : sig
+          module I : interface clear enable first last x{| |} end
+          module O : interface v{| |} l{| |} rdy end
+          val f : t I.t -> t O.t
+        end
+
     end
 end
 

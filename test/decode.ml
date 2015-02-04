@@ -4,22 +4,21 @@ open HardCamlWaveLTerm.Api
 open Rsutil
 
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module Forney = Hw.Decoder.Forney
-module G = Interface.Gen(Forney.I)(Forney.O)
+module Decode = Hw.Decoder.Decode(struct let n=1 end)
+module G = Interface.Gen(Decode.I)(Decode.O)
 
 let cfg = 
   let open Waveterm_waves in
-  let open Forney in
+  let open Decode in
   ["clock",B] @
-  I.(to_list (map (fun (n,_) -> if List.mem n ["clear";"enable"] then n,B else n,U) t)) @
-  O.(to_list (map (fun (n,_) -> n,U) t)) @
-  ["xl",U; "xv",U; "el",U; "ev",U]
+  I.(to_list (map (fun (n,b) -> if b=1 then n,B else n,U) t)) @
+  O.(to_list (map (fun (n,b) -> if b=1 then n,B else n,U) t))
 
 let test () = 
-  let open Forney.I in
-  let open Forney.O in
+  let open Decode.I in
+  let open Decode.O in
 
-  let circ, sim, i, o = G.make "forney" Forney.f in
+  let circ, sim, i, o = G.make "decode" Decode.f in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
 
   let codeword = codeword (message ()) in
@@ -43,34 +42,28 @@ let test () =
   Printf.printf "n: "; dump ch;
   Printf.printf "f: "; dump fy;
 
-  (* forney debug gubbins *)
-  Printf.printf "_: %i %i %i %i\n"
-    Sw.G.(antilog 3) Sw.G.( (antilog 3) **: 2)
-    Sw.G.(antilog 9) Sw.G.( (antilog 9) **: 2);
-  Printf.printf "_: [v=%i l'=%i] [v=%i l'=%i] \n" 
-    (Sw.R.horner v Sw.G.(antilog 3)) (Sw.R.horner l' Sw.G.((antilog 3) **: 2))
-    (Sw.R.horner v Sw.G.(antilog 9)) (Sw.R.horner l' Sw.G.((antilog 9) **: 2));
-
   Cs.reset sim;
   i.enable := B.vdd;
   i.clear := B.vdd;
   Cs.cycle sim;
   i.clear := B.gnd;
-  
-  for j=0 to Array.length v - 1 do
-    i.v.(j) := B.consti sbits v.(j)
-  done;
-  for j=0 to Array.length l' - 1 do
-    i.l.(j) := B.consti sbits l'.(j)
+
+  let received = rev received in (* load data from highest power first *)
+
+  (* load received data *)
+  i.first := B.vdd;
+  for j=0 to n-1 do
+    i.x.(0) := B.consti sbits received.(j);
+    if j=(n-1) then begin
+      i.last := B.vdd;
+    end;
+    Cs.cycle sim;
+    i.first := B.gnd;
+    i.last := B.gnd;
   done;
 
-  for j=0 to Array.length ch - 1 do
-    i.x := B.consti sbits ch.(j);
-    Cs.cycle sim;
-  done;
-  (* some flush cycles *)
-  for j=0 to 4 do
-    Cs.cycle sim;
+  for i=0 to 10 do
+    Cs.cycle sim
   done;
 
   Lwt_main.run (Waveterm_ui.run Waveterm_waves.({ cfg=default; waves }))

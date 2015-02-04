@@ -34,8 +34,8 @@ module type S = sig
         val riBM : clear:t -> enable:t -> start:t -> syndromes:t list -> t list
         val rriBM : clear:t -> enable:t -> first:t -> last:t -> syndromes:t list -> t list * t list
         module RiBM : sig
-          module I : interface clear enable first last syndromes{ } end
-          module O : interface w{ } l{ } end
+          module I : interface clear enable first last syndromes{| |} end
+          module O : interface w{| |} l{| |} end
           val f : t I.t -> t O.t
         end
 
@@ -48,13 +48,27 @@ module type S = sig
           val f : t I.t -> t O.t
         end
 
-        val forney : clear:t -> enable:t -> start:t -> store:t -> ctrl:t -> tap:t -> x:t -> t
-        module Forney : sig
+        val forney_serial : clear:t -> enable:t -> start:t -> store:t -> ctrl:t -> tap:t -> x:t -> t
+        module Forney_serial : sig
           module I : interface clear enable start store ctrl tap x end
           module O : interface e end
           val f : t I.t -> t O.t
         end
 
+        val forney : clear:t -> enable:t -> v:t array -> l:t array -> x:t -> t
+        module Forney : sig
+          module I : interface clear enable v{| |} l{| |} x end
+          module O : interface e end
+          val f : t I.t -> t O.t
+        end
+
+        val decode : p:int -> clear:t -> enable:t -> first:t -> last:t -> x:t array ->
+          t array * t array * t
+        module Decode(N:N) : sig
+          module I : interface clear enable first last x{| |} end
+          module O : interface v{| |} l{| |} rdy end
+          val f : t I.t -> t O.t
+        end
     end
 end
 
@@ -329,14 +343,14 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
             List.map snd (Utils.lselect delta' Rp.t (2*Rp.t))
 
         module RiBM = struct
-            module I = interface clear[1] enable[1] first[1] last[1] syndromes{2*Rp.t}[Gfh.bits] end
-            module O = interface w{Rp.t}[Gfh.bits] l{Rp.t+1}[Gfh.bits] end
+            module I = interface clear[1] enable[1] first[1] last[1] syndromes{|2*Rp.t|}[Gfh.bits] end
+            module O = interface w{|Rp.t|}[Gfh.bits] l{|Rp.t+1|}[Gfh.bits] end
             let f i = 
                 let w, l = I.(rriBM ~clear:i.clear ~enable:i.enable 
                                     ~first:i.first ~last:i.last
-                                    ~syndromes:i.syndromes)
+                                    ~syndromes:(Array.to_list i.syndromes))
                 in
-                O.({ w; l })
+                O.({ w=Array.of_list w; l=Array.of_list l })
         end
 
         (***********************************************************)
@@ -378,7 +392,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
         (***********************************************************)
         (* forney *)
 
-        let forney ~clear ~enable ~start ~store ~ctrl ~tap ~x = 
+        let forney_serial ~clear ~enable ~start ~store ~ctrl ~tap ~x = 
             let ghorner ~clear ~enable ~tap ~x = 
                 Seq.reg_fb ~c:clear ~cv:tap ~e:enable ~w:Gfh.bits
                     Gfh.(fun d -> tap +: (x *: d))
@@ -400,15 +414,54 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
             let e   = Seq.reg ~c:clear ~e:(enable &: store) Gfh.(x *: e) -- "x_mul_e" in 
             e
 
-        module Forney = struct
+        module Forney_serial = struct
             module I = interface clear[1] enable[1] start[1] store[1]
                                  ctrl[1] tap[Gfh.bits] x[Gfh.bits] end 
             module O = interface e[Gfh.bits] end 
             let f i = 
-                let e = I.(forney ~clear:i.clear ~enable:i.enable ~start:i.start
-                                  ~store:i.store ~ctrl:i.ctrl ~tap:i.tap ~x:i.x)
+                let e = I.(forney_serial ~clear:i.clear ~enable:i.enable ~start:i.start
+                                         ~store:i.store ~ctrl:i.ctrl ~tap:i.tap ~x:i.x)
                 in
                 O.({ e })
+        end
+
+        let forney ~clear ~enable ~v ~l ~x = 
+          let n_tree = 4 in
+          let reg d = Seq.reg ~c:clear ~e:enable d in
+          let pipe n d = Seq.pipeline ~c:clear ~e:enable ~n:n d in
+    
+          (* parallel polynomial evaluation *)
+          let eval clear enable poly x = 
+            let a = Array.mapi Gfh.(fun pow coef -> coef *: (cpow x pow)) poly in
+            let a = Array.map (fun d -> reg d) a in
+            let add_p a = reg (reduce Gfh.(+:) a) in
+            tree n_tree add_p (Array.to_list a) 
+          in
+
+          let v_depth = tree_depth n_tree (Array.length v) in
+          let l_depth = tree_depth n_tree (Array.length l) in
+          
+          Printf.printf "v_depth=%i l_depth=%i\n" v_depth l_depth;
+          assert (v_depth >= l_depth);
+
+          let xv = reg Gfh.(antilog x) in
+          let xl = (reg Gfh.(rom (fun i -> Gfs.(i **: 2)) xv)) -- "xl" in
+          let xv = (reg xv) -- "xv" in
+
+          let v = (eval clear enable v xv) -- "ev" in
+          let l = (eval clear enable l xl) -- "el_" in
+          let l = (pipe (v_depth-l_depth) l) -- "el" in
+
+          let x = (pipe (1+v_depth) Gfh.( cpow xv (Rp.b+(2*Rp.t)-1) )) -- "xp" in
+          reg Gfh.( x *: (v /: l) )
+
+        module Forney = struct
+          module I = interface clear[1] enable[1] 
+                     v{|Rp.t|}[Gfh.bits] l{|(Rp.t+1)/2|}[Gfh.bits] x[Gfh.bits] end 
+          module O = interface e[Gfh.bits] end 
+          let f i = 
+            let e = I.(forney ~clear:i.clear ~enable:i.enable ~v:i.v ~l:i.l ~x:i.x) in
+            O.({ e })
         end
 
         (***********************************************************)
@@ -417,16 +470,37 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
         (***********************************************************)
         (* decoder *)
 
-        let decoder clear enable load rx = 
-            let t_bm = Rp.t*2 + 1 in
-            let t_forney = Rp.t + (Rp.t/2) + 4 in
-            let t_max = max t_bm t_forney in
-            ()
+        
+
+        let decode ~p ~clear ~enable ~first ~last ~x = 
+          let module N = struct let n = p end in
+          let module S = PSyndromes(N) in
+          let module B = RiBM in
+          let module V = PChien(N) in
+          let module F = Forney in
+
+          let s = S.(f I.{ clear; enable; first; last; x }) in
+
+          let last = Seq.pipeline ~c:clear ~e:enable ~n:(2*Rp.t) s.S.O.valid in
+          let berlekamp = B.(f I.{ clear; enable; first=s.S.O.valid; last; 
+                                   syndromes=s.S.O.syndromes }) in
+          let v, l = B.O.(berlekamp.w, berlekamp.l) in
+
+          v, l, Seq.reg ~c:clear ~e:enable last
+
+        module Decode(N:N) = struct
+          module I = interface clear[1] enable[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
+          module O = interface v{|Rp.t|}[Gfh.bits] l{|Rp.t+1|}[Gfh.bits] rdy[1] end
+          let f i = 
+            let open I in
+            let v, l, rdy = decode ~p:N.n ~clear:i.clear ~enable:i.enable 
+              ~first:i.first ~last:i.last ~x:i.x
+            in
+            O.{ v; l; rdy }
+
+        end
 
     end
 
 end
-
-
-
 
