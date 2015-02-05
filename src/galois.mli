@@ -14,7 +14,7 @@ module Make(B : Comb.S)(P : Reedsolomon.Galois.Table.Params) : sig
 
   val log : t -> t
   val antilog : t -> t
-  
+
   val inv : t -> t
 
   val (+:) : t -> t -> t
@@ -36,4 +36,4 @@ module Make(B : Comb.S)(P : Reedsolomon.Galois.Table.Params) : sig
   val cmul : ?rom:bool -> G.t -> t -> t
 
 end
-  with type t = B.t
+with type t = B.t
