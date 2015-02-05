@@ -4,15 +4,16 @@ open HardCamlWaveLTerm.Api
 open Rsutil
 
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module Forney = Hw.Decoder.Forney
+module Decoder = Hw.Decoder(struct let n = 1 end)
+module Forney = Decoder.Forney
 module G = Interface.Gen(Forney.I)(Forney.O)
 
 let cfg = 
   let open Waveterm_waves in
   let open Forney in
   ["clock",B] @
-  I.(to_list (map (fun (n,_) -> if List.mem n ["clear";"enable"] then n,B else n,U) t)) @
-  O.(to_list (map (fun (n,_) -> n,U) t)) @
+  I.(to_list (map (fun (n,b) -> if b=1 then n,B else n,U) t)) @
+  O.(to_list (map (fun (n,b) -> if b=1 then n,B else n,U) t)) @
   ["xl",U; "xv",U; "el",U; "ev",U]
 
 let test () = 

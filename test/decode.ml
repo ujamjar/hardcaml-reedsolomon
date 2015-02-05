@@ -4,7 +4,8 @@ open HardCamlWaveLTerm.Api
 open Rsutil
 
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module Decode = Hw.Decoder.Decode(struct let n=1 end)
+module Decoder = Hw.Decoder(struct let n = 1 end)
+module Decode = Decoder.Decode
 module G = Interface.Gen(Decode.I)(Decode.O)
 
 let cfg = 
@@ -26,7 +27,7 @@ let test () =
   let _ = error 2 in
   let error = error 2 in
   let received = codeword ^. error in
-  let syndromes = syndromes received in
+(*  let syndromes = syndromes received in
   let v, l = berlekamp syndromes in
   let l' = Array.init ((Rsutil.t+1)/2) (fun i -> l.(i*2+1)) in (* derivative of l, if evaluated at x^2 *)
   let ch = Array.of_list @@ chien l in
@@ -41,6 +42,7 @@ let test () =
   Printf.printf "': "; dump l';
   Printf.printf "n: "; dump ch;
   Printf.printf "f: "; dump fy;
+*)
 
   Cs.reset sim;
   i.enable := B.vdd;
@@ -52,6 +54,7 @@ let test () =
 
   (* load received data *)
   i.first := B.vdd;
+  i.load := B.vdd;
   for j=0 to n-1 do
     i.x.(0) := B.consti sbits received.(j);
     if j=(n-1) then begin
@@ -61,10 +64,21 @@ let test () =
     i.first := B.gnd;
     i.last := B.gnd;
   done;
+  i.load := B.gnd;
 
-  for i=0 to 10 do
-    Cs.cycle sim
+  let ocnt = ref 0 in
+  let corrected = Array.init n (fun _ -> 0) in
+  while !ocnt < n do
+    Cs.cycle sim;
+    if B.to_int !(o.ordy) <> 0 then begin
+      corrected.(!ocnt) <- B.to_int !(o.corrected.(0));
+      incr ocnt;
+    end
   done;
+
+  Cs.cycle sim; (* show last cycle *)
+  Printf.printf "EXPECTED : "; dump (rev codeword);
+  Printf.printf "CORRECTED: "; dump corrected;
 
   Lwt_main.run (Waveterm_ui.run Waveterm_waves.({ cfg=default; waves }))
 

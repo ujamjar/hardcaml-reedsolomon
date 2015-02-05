@@ -4,13 +4,16 @@ open HardCamlWaveLTerm.Api
 open Rsutil
 
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module Chien = Hw.Decoder.PChien(struct let n=1 end)
+module Decoder = Hw.Decoder(struct let n = 2 end)
+module Chien = Decoder.PChien
 module G = Interface.Gen(Chien.I)(Chien.O)
 
 let cfg = 
   let open Waveterm_waves in
   let open Chien in
-  O.(to_list (map (fun (n,_) -> n,U) t)) 
+  ["clock",B] @
+  I.(to_list (map (fun (n,b) -> if b=1 then n,B else n,U) t)) @
+  O.(to_list (map (fun (n,b) -> if b=1 then n,B else n,U) t))
 
 let test () = 
   let open Chien.I in
@@ -41,6 +44,7 @@ let test () =
   (* val ch : int list = [12; 13; 5; 8; 12; 5; 0; 9; 4; 8; 4; 0; 1; 1; 9] *)
 
   dump (Array.init n_elems (fun i -> Sw.R.horner l (Sw.G.antilog i)));
+  dump (Array.init n_elems (fun i -> i));
   dump (Array.init n_elems (fun i -> (Sw.G.(log @@ inv @@ antilog i))));
 
   Cs.reset sim;

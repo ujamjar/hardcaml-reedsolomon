@@ -12,7 +12,8 @@ open HardCamlWaveLTerm.Api
 open Rsutil
 
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module PSyndromes = Hw.Decoder.PSyndromes(struct let n = 1 end)
+module Decoder = Hw.Decoder(struct let n = 1 end)
+module PSyndromes = Decoder.PSyndromes
 module G = Interface.Gen(PSyndromes.I)(PSyndromes.O)
 
 (* configure waveform display *)
@@ -43,10 +44,12 @@ let test () =
   Cs.cycle sim;
   i.clear := B.gnd;
 
+  let recv = rev received in
+
   (* load received data *)
   i.first := B.vdd;
   for j=0 to n-1 do
-    i.x.(0) := B.consti sbits received.(j);
+    i.x.(0) := B.consti sbits recv.(j);
     if j=(n-1) then begin
       i.last := B.vdd;
     end;

@@ -19,12 +19,13 @@ module type S = sig
 
     end
 
-    module Decoder : sig
-        module type N = sig val n : int end
+    module type N = sig val n : int end
+
+    module Decoder(N : N) : sig
         val syndrome : root:int -> enable:t -> first:t -> x:t -> t
         val syndromes : enable:t -> first:t -> x:t -> t array
         val psyndromes : clear:t -> enable:t -> first:t -> last:t -> x:t array -> t * t array
-        module PSyndromes(N : N) : sig
+        module PSyndromes : sig
           module I : interface clear enable first last x{| |} end
           module O : interface valid syndromes{| |} end
           val f : t I.t -> t O.t
@@ -41,10 +42,11 @@ module type S = sig
 
 
         val chien : clear:t -> enable:t -> lambda:t list -> t
-        val pchien : p:int -> clear:t -> enable:t -> start:t -> lambda:t array -> t array
-        module PChien(N:N) : sig
+        val pchien : p:int -> clear:t -> enable:t -> start:t -> lambda:t array -> 
+          t array * t array * t array * t array
+        module PChien : sig
           module I : interface clear enable start lambda{| |}  end
-          module O : interface error_locs{| |} end
+          module O : interface eval{| |} eloc{| |} evld{| |} eerr{| |} end
           val f : t I.t -> t O.t
         end
 
@@ -55,18 +57,30 @@ module type S = sig
           val f : t I.t -> t O.t
         end
 
-        val forney : clear:t -> enable:t -> v:t array -> l:t array -> x:t -> t
+        val forney : clear:t -> enable:t -> vld:t -> err:t -> 
+          v:t array -> l:t array -> x:t -> t * t * t
         module Forney : sig
-          module I : interface clear enable v{| |} l{| |} x end
-          module O : interface e end
+          module I : interface clear enable vld err v{| |} l{| |} x end
+          module O : interface emag frdy ferr end
           val f : t I.t -> t O.t
         end
 
-        val decode : p:int -> clear:t -> enable:t -> first:t -> last:t -> x:t array ->
-          t array * t array * t
-        module Decode(N:N) : sig
-          module I : interface clear enable first last x{| |} end
-          module O : interface v{| |} l{| |} rdy end
+        module PForney : sig
+          module I : interface clear enable vld{| |} err{| |} v{| |} l{| |} x{| |} end
+          module O : interface emag{| |} frdy{| |} ferr{| |} end
+          val f : t I.t -> t O.t
+        end
+
+        module Decode : sig
+          module I : interface clear enable load first last x{| |} end
+          module O : interface 
+            (syn : PSyndromes.O)
+            (bm : RiBM.O)
+            (ch : PChien.O)
+            (fy : PForney.O)
+            corrected{| |}
+            ordy
+          end
           val f : t I.t -> t O.t
         end
     end
@@ -114,13 +128,14 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
 
     end
 
-    module Decoder = struct
+    module type N = sig
+        val n : int
+    end
+
+    module Decoder(N : N) = struct
 
         open B
 
-        module type N = sig
-            val n : int
-        end
         module type F = sig
             module I : Interface.S
             module O : Interface.S
@@ -176,7 +191,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
             Seq.reg ~c:clear ~e:enable last, 
             Array.map (fun d -> Seq.reg ~c:clear ~e:last d) syndromes 
 
-        module PSyndromes(N : N) = struct
+        module PSyndromes = struct
             module I = interface clear[1] enable[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
             module O = interface valid[1] syndromes{|2*Rp.t|}[Gfh.bits] end
             let f i = 
@@ -364,6 +379,37 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
             let l = Utils.mapi f lambda in
             tree 2 (reduce Gfh.(+:)) l
 
+        type state = Start | Run
+
+        let chien_ctrl ~clear ~enable ~start = 
+          let open Signal.Guarded in
+          let st, sm, next = Seq.statemachine ~c:clear ~e:enable [Start;Run] in
+          let vld = g_wire B.gnd in
+          let eloc = Seq.g_reg ~c:clear ~cv:(one Gfh.bits) ~e:enable Gfh.bits in
+          let () = compile [
+            sm [
+              Start, [
+                eloc $==. 1;
+                g_when start [
+                  eloc $==. 2;
+                  vld $==. 1;
+                  next Run;
+                ];
+              ];
+              Run, [
+                vld $==. 1;
+                eloc $== (eloc#q +:. 1);
+                g_when (eloc#q ==:. (Gfh.n_elems-2)) [
+                  eloc $==. 0;
+                ];
+                g_when (eloc#q ==:. 0) [
+                  next Start;
+                ];
+              ];
+            ];
+          ] in
+          vld#q, eloc#q
+
         (* produces error location results in reverse order ie from [n_elem-2 ... 0] *)
         let pchien ~p ~clear ~enable ~start ~lambda = 
             let lambda' = Array.map (fun _ -> wire Gfh.bits) lambda in
@@ -377,16 +423,40 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
                             (mux2 start l (Seq.reg ~c:clear ~e:enable fb.(i)))) 
                     lambda
             in
-            Array.map (fun c -> tree 2 (reduce Gfh.(+:)) (Array.to_list c)) c
+            let eval = Array.map (fun c -> tree 2 (reduce Gfh.(+:)) (Array.to_list c)) c in
+            (*let eloc = 
+              Array.init p 
+                (fun i -> 
+                  mux2 start 
+                    (consti Gfh.bits (1+i))
+                    (Seq.reg_fb ~c:(clear|:start) ~cv:(consti Gfh.bits (1+i+p)) ~e:enable 
+                      ~w:Gfh.bits (fun d -> Gfh.modfs (d +:. p)))) (* mod (n_elems-1) *)
+            in
+            let count = Seq.reg_fb ~c:clear ~e:enable ~w:Gfh.bits 
+              (fun d -> (* parallel counter.... *)
+                mux2 start Gfh.one 
+                  (mux2 (d ==:. (Gfh.n_elems-1)) d (d +:. 1)))
+            in
+            let running = start |: (count <>:. Gfh.n_elems-1) in
+            let evld = Array.map (fun x -> running) eval in
+            let eerr = Array.map (fun x -> running &: (x ==:. 0)) eval in
+            eval, eloc, evld, eerr*)
+            let vld, eloc = chien_ctrl ~clear ~enable ~start in
+            let eloc = Array.init p (fun _ -> eloc) in
+            let evld = Array.init p (fun _ -> vld) in
+            let eerr = Array.init p (fun j -> (eval.(j) ==:. 0) &: evld.(j)) in
+            eval, eloc, evld, eerr
 
-        module PChien(N:N) = struct
+        module PChien = struct
             module I = interface clear[1] enable[1] start[1] lambda{|Rp.t+1|}[Gfh.bits] end
-            module O = interface error_locs{|N.n|}[Gfh.bits] end
+            module O = interface eval{|N.n|}[Gfh.bits] eloc{|N.n|}[Gfh.bits] 
+                                 evld{|N.n|}[1] eerr{|N.n|}[1] end
             let f i = 
-                let error_locs = I.(pchien ~p:N.n ~clear:i.clear ~enable:i.enable
-                                           ~start:i.start ~lambda:i.lambda)
+                let eval, eloc, evld, eerr = 
+                  I.(pchien ~p:N.n ~clear:i.clear ~enable:i.enable
+                            ~start:i.start ~lambda:i.lambda)
                 in
-                O.({ error_locs })
+                O.({ eval; eloc; evld; eerr })
         end
 
         (***********************************************************)
@@ -425,7 +495,7 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
                 O.({ e })
         end
 
-        let forney ~clear ~enable ~v ~l ~x = 
+        let forney ~clear ~enable ~vld ~err ~v ~l ~x = 
           let n_tree = 4 in
           let reg d = Seq.reg ~c:clear ~e:enable d in
           let pipe n d = Seq.pipeline ~c:clear ~e:enable ~n:n d in
@@ -441,7 +511,6 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
           let v_depth = tree_depth n_tree (Array.length v) in
           let l_depth = tree_depth n_tree (Array.length l) in
           
-          Printf.printf "v_depth=%i l_depth=%i\n" v_depth l_depth;
           assert (v_depth >= l_depth);
 
           let xv = reg Gfh.(antilog x) in
@@ -453,50 +522,113 @@ module Make(Gp : Reedsolomon.Galois.Table.Params)
           let l = (pipe (v_depth-l_depth) l) -- "el" in
 
           let x = (pipe (1+v_depth) Gfh.( cpow xv (Rp.b+(2*Rp.t)-1) )) -- "xp" in
-          reg Gfh.( x *: (v /: l) )
+          reg Gfh.( x *: (v /: l) ),
+          pipe (4+v_depth) vld,
+          pipe (4+v_depth) err
 
         module Forney = struct
-          module I = interface clear[1] enable[1] 
+          module I = interface clear[1] enable[1] vld[1] err[1]
                      v{|Rp.t|}[Gfh.bits] l{|(Rp.t+1)/2|}[Gfh.bits] x[Gfh.bits] end 
-          module O = interface e[Gfh.bits] end 
+          module O = interface emag[Gfh.bits] frdy[1] ferr[1] end 
           let f i = 
-            let e = I.(forney ~clear:i.clear ~enable:i.enable ~v:i.v ~l:i.l ~x:i.x) in
-            O.({ e })
+            let emag, frdy, ferr = I.(forney ~clear:i.clear ~enable:i.enable 
+              ~vld:i.vld ~err:i.err
+              ~v:i.v ~l:i.l ~x:i.x) in
+            O.({ emag; frdy; ferr })
         end
+
+        module PForney = struct
+          module I = interface clear[1] enable[1] vld{|N.n|}[1] err{|N.n|}[1]
+                     v{|Rp.t|}[Gfh.bits] l{|(Rp.t+1)/2|}[Gfh.bits] 
+                     x{|N.n|}[Gfh.bits] end 
+          module O = interface emag{|N.n|}[Gfh.bits] frdy{|N.n|}[1] ferr{|N.n|}[1] end 
+          let f i = 
+            let o = 
+              Array.init N.n (fun j ->
+                I.(forney ~clear:i.clear ~enable:i.enable ~vld:i.vld.(j) ~err:i.err.(j)
+                    ~v:i.v ~l:i.l ~x:i.x.(j))) 
+            in 
+            O.({ emag=Array.map (fun (x,_,_) -> x) o; 
+                 frdy=Array.map (fun (_,x,_) -> x) o; 
+                 ferr=Array.map (fun (_,_,x) -> x) o}) 
+          end
 
         (***********************************************************)
         (* error correction *)
 
+        module Fifo = struct
+          module I = interface clear[1] wr[1] d{|N.n|}[Gfh.bits] rd[1] end
+          module O = interface q{|N.n|}[Gfh.bits] end
+          let f i =
+            let open I in
+            let fbits = 5 in (* XXX get actual size *)
+            let felems = 1 lsl fbits in
+            let wa = Seq.reg_fb ~c:i.clear ~e:i.wr ~w:fbits (fun d -> d +:. 1) -- "fifo_wa" in
+            let ra = Seq.reg_fb ~c:i.clear ~e:i.rd ~w:fbits (fun d -> d +:. 1) -- "fifo_ra" in
+            let d = concat (List.rev (Array.to_list i.d)) in
+            let q = Seq.ram_rbw felems ~we:i.wr ~wa ~d ~re:i.rd ~ra in
+            let q = Array.init N.n (fun i -> select q (((i+1)*Gfh.bits)-1) (i*Gfh.bits)) in
+            O.{ q }
+        end
+
         (***********************************************************)
         (* decoder *)
 
-        
-
-        let decode ~p ~clear ~enable ~first ~last ~x = 
-          let module N = struct let n = p end in
-          let module S = PSyndromes(N) in
-          let module B = RiBM in
-          let module V = PChien(N) in
-          let module F = Forney in
-
-          let s = S.(f I.{ clear; enable; first; last; x }) in
-
-          let last = Seq.pipeline ~c:clear ~e:enable ~n:(2*Rp.t) s.S.O.valid in
-          let berlekamp = B.(f I.{ clear; enable; first=s.S.O.valid; last; 
-                                   syndromes=s.S.O.syndromes }) in
-          let v, l = B.O.(berlekamp.w, berlekamp.l) in
-
-          v, l, Seq.reg ~c:clear ~e:enable last
-
-        module Decode(N:N) = struct
-          module I = interface clear[1] enable[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
-          module O = interface v{|Rp.t|}[Gfh.bits] l{|Rp.t+1|}[Gfh.bits] rdy[1] end
+        module Decode = struct
+          module I = interface clear[1] enable[1] load[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
+          module O = interface 
+            (syn : PSyndromes.O)
+            (bm : RiBM.O)
+            (ch : PChien.O)
+            (fy : PForney.O)
+            corrected{|N.n|}[Gfh.bits]
+            ordy[1]
+          end
           let f i = 
-            let open I in
-            let v, l, rdy = decode ~p:N.n ~clear:i.clear ~enable:i.enable 
-              ~first:i.first ~last:i.last ~x:i.x
+            let clear, enable = I.(i.clear, i.enable) in
+            let reg d = Seq.reg ~c:clear ~e:enable d in
+            let pipe ~n d = Seq.pipeline ~c:clear ~e:enable ~n d in
+
+            (* syndromes *)
+            let syn = PSyndromes.f 
+              { PSyndromes.I.clear; enable; 
+                first=i.I.first; last=i.I.last; x=i.I.x } 
             in
-            O.{ v; l; rdy }
+            
+            let fifo_re = wire 1 in
+            let fifo = Fifo.f { Fifo.I.clear; wr=i.I.load; d=i.I.x; rd=fifo_re } in
+
+            (* berlekamp-massey *)
+            let first = syn.PSyndromes.O.valid in
+            let last = pipe ~n:(2*Rp.t) syn.PSyndromes.O.valid in
+            let bm = RiBM.f 
+              { RiBM.I.clear; enable; first; last; 
+                syndromes=syn.PSyndromes.O.syndromes } 
+            in
+
+            (* chien search *)
+            let start = reg last in
+            let ch = PChien.f { PChien.I.clear; enable; start; lambda=bm.RiBM.O.l } in
+ 
+            (* forney *)
+            let l = Array.init ((Rp.t+1)/2) (fun i -> bm.RiBM.O.l.(i*2+1)) in
+            let fy = PForney.f 
+              { PForney.I.clear; enable; vld=ch.PChien.O.evld; err=ch.PChien.O.eerr;
+                v=bm.RiBM.O.w; l; x=ch.PChien.O.eloc }
+            in
+
+            (* correction *)
+            let () = fifo_re <== fy.PForney.O.frdy.(0) in (* dont need array? *)
+            let corrected = Array.init N.n 
+              (fun j ->
+                mux2 (reg fy.PForney.O.ferr.(j)) 
+                  (fifo.Fifo.O.q.(j) ^: (reg fy.PForney.O.emag.(j)))
+                  fifo.Fifo.O.q.(j))
+            in
+            let ordy = reg fy.PForney.O.frdy.(0) in
+
+            (* for now all submodule outputs *)
+            O.{ syn; bm; ch; fy; corrected; ordy }
 
         end
 

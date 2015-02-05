@@ -21,6 +21,9 @@ module Make(B : Comb.S)(P : Reedsolomon.Galois.Table.Params) : sig
   val (-:) : t -> t -> t
 
   val ( *: ) : t -> t -> t
+
+  val modfs : t -> t
+
   val ( /: ) : t -> t -> t
 
   val ( **: ) : t -> t -> t

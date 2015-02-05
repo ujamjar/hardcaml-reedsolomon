@@ -4,7 +4,8 @@ open HardCamlWaveLTerm.Api
 open Rsutil
 
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module Bm = Hw.Decoder.RiBM
+module Decoder = Hw.Decoder(struct let n = 1 end)
+module Bm = Decoder.RiBM
 module G = Interface.Gen(Bm.I)(Bm.O)
 
 let cfg = 

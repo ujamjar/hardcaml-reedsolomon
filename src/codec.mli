@@ -11,8 +11,10 @@ module type S = sig
         val f : t I.t -> t O.t 
     end
 
-    module Decoder : sig
-        module type N = sig val n : int end
+    module type N = sig val n : int end
+
+    module Decoder(N : N) : sig
+
         (* sequential calculation of syndromes *)
         val syndrome : root:int -> enable:t -> first:t -> x:t -> t
         val syndromes : enable:t -> first:t -> x:t -> t array
@@ -20,7 +22,7 @@ module type S = sig
         (* parallel calculation of syndromes *)
         val psyndromes : clear:t -> enable:t -> first:t -> last:t -> x:t array -> t * t array
 
-        module PSyndromes(N : N) : sig
+        module PSyndromes : sig
           module I : interface clear enable first last x{| |} end
           module O : interface valid syndromes{| |} end
           val f : t I.t -> t O.t
@@ -39,11 +41,12 @@ module type S = sig
 
         (* chien search *)
         val chien : clear:t -> enable:t -> lambda:t list -> t
-        val pchien : p:int -> clear:t -> enable:t -> start:t -> lambda:t array -> t array
+        val pchien : p:int -> clear:t -> enable:t -> start:t -> lambda:t array -> 
+          t array * t array * t array * t array
 
-        module PChien(N:N) : sig
+        module PChien : sig
           module I : interface clear enable start lambda{| |}  end
-          module O : interface error_locs{| |} end
+          module O : interface eval{| |} eloc{| |} evld{| |} eerr{| |} end
           val f : t I.t -> t O.t
         end
 
@@ -56,18 +59,30 @@ module type S = sig
           val f : t I.t -> t O.t
         end
 
-        val forney : clear:t -> enable:t -> v:t array -> l:t array -> x:t -> t
+        val forney : clear:t -> enable:t -> vld:t -> err:t -> 
+          v:t array -> l:t array -> x:t -> t * t * t
         module Forney : sig
-          module I : interface clear enable v{| |} l{| |} x end
-          module O : interface e end
+          module I : interface clear enable vld err v{| |} l{| |} x end
+          module O : interface emag frdy ferr end
           val f : t I.t -> t O.t
         end
   
-        val decode : p:int -> clear:t -> enable:t -> first:t -> last:t -> x:t array ->
-          t array * t array * t
-        module Decode(N:N) : sig
-          module I : interface clear enable first last x{| |} end
-          module O : interface v{| |} l{| |} rdy end
+        module PForney : sig
+          module I : interface clear enable vld{| |} err{| |} v{| |} l{| |} x{| |} end
+          module O : interface emag{| |} frdy{| |} ferr{| |} end
+          val f : t I.t -> t O.t
+        end
+
+        module Decode : sig
+          module I : interface clear enable load first last x{| |} end
+          module O : interface 
+            (syn : PSyndromes.O)
+            (bm : RiBM.O)
+            (ch : PChien.O)
+            (fy : PForney.O)
+            corrected{| |}
+            ordy
+          end
           val f : t I.t -> t O.t
         end
 
