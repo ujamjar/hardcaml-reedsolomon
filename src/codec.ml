@@ -24,11 +24,12 @@ module type S = sig
 
     val syndrome : root:int -> enable:t -> first:t -> x:t -> t
     val syndromes : enable:t -> first:t -> x:t -> t array
-    val psyndromes : clear:t -> enable:t -> first:t -> last:t -> x:t array -> t * t array
+    val psyndromes : scale:int -> clear:t -> enable:t -> first:t -> last:t -> x:t array -> 
+      t * t array
     module PSyndromes : sig
       module I : interface clear enable first last x{| |} end
       module O : interface valid syndromes{| |} end
-      val f : t I.t -> t O.t
+      val f : scale:int -> t I.t -> t O.t
     end
 
     val iBM : clear:t -> enable:t -> start:t -> syndromes:t list -> t list
@@ -160,7 +161,7 @@ module Make
       Array.init (2*Rp.t) 
         (fun i -> syndrome (Rs.root i) enable first x)
 
-    let psyndromes ~clear ~enable ~first ~last ~x = 
+    let psyndromes ~scale ~clear ~enable ~first ~last ~x = 
       let n = Array.length x in
       let n_tree = 2 in
       let eval c x = 
@@ -189,14 +190,19 @@ module Make
             syndrome clear enable first Gfs.(root **: n) root x)
       in
       Seq.reg ~c:clear ~e:enable last, 
-      Array.map (fun d -> Seq.reg ~c:clear ~e:last d) syndromes 
+      Array.init (Array.length syndromes) 
+        (fun i ->
+          let iroot = Gfs.(inv (Rs.root i **: scale)) in
+          Seq.reg ~c:clear ~e:last 
+            (if scale=0 then syndromes.(i) else (Gfh.cmul iroot syndromes.(i))))
 
     module PSyndromes = struct
       module I = interface clear[1] enable[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
       module O = interface valid[1] syndromes{|2*Rp.t|}[Gfh.bits] end
-      let f i = 
-        let valid, syndromes = I.(psyndromes ~clear:i.clear ~enable:i.enable 
-                                  ~first:i.first ~last:i.last ~x:i.x) 
+      let f ~scale i = 
+        let valid, syndromes = I.(psyndromes ~scale
+          ~clear:i.clear ~enable:i.enable 
+          ~first:i.first ~last:i.last ~x:i.x) 
       in
       O.({ valid; syndromes })
     end
@@ -574,7 +580,7 @@ module Make
         let pipe ~n d = Seq.pipeline ~c:clear ~e:enable ~n d in
 
         (* syndromes *)
-        let syn = PSyndromes.f 
+        let syn = PSyndromes.f ~scale:0 
             { PSyndromes.I.clear; enable; 
               first=i.I.first; last=i.I.last; x=i.I.x } 
         in
