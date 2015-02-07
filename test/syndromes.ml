@@ -51,7 +51,6 @@ let test () =
   i.clear := B.gnd;
 
   dump received;
-  (*let recv = Array.concat [ Array.init offset (fun _ -> 0); rev received ] in*)
   let recv = Array.concat [ rev received; Array.init offset (fun _ -> 0) ] in
 
   (* load received data *)
@@ -76,8 +75,6 @@ let test () =
   (* compare *)
   let syndromes_sw = syndromes received in
   let syndromes_tb = Array.map (fun x -> B.to_int !x) o.syndromes in
-  (*let iroots = Array.init (2*Sw.Rp.t) (fun i -> Sw.G.(inv ((Sw.R.root i) **: offset))) in
-  let syndromes_tb = Array.init (2*Sw.Rp.t) (fun i -> Sw.G.( iroots.(i) *: syndromes_tb.(i) )) in*)
   dump syndromes_sw;
   dump syndromes_tb;
 

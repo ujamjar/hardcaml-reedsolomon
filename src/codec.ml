@@ -148,6 +148,10 @@ module Make
       else if x<=n then 1
       else 1 + tree_depth n ((x+n-1)/n) 
 
+    let rp_n = Rp.k + Rp.t + Rp.t
+    let cycles_per_codeword = (rp_n + N.n - 1) / N.n
+    let syndrome_inv_root_scale = (cycles_per_codeword * N.n) - rp_n
+
     (***********************************************************)
     (* syndrome calculation *)
 
@@ -387,34 +391,39 @@ module Make
 
     type state = Start | Run
 
-    let chien_ctrl ~clear ~enable ~start = 
+    let chien_ctrl ~p ~clear ~enable ~start = 
       let open Signal.Guarded in
       let st, sm, next = Seq.statemachine ~c:clear ~e:enable [Start;Run] in
       let vld = g_wire B.gnd in
-      let eloc = Seq.g_reg ~c:clear ~cv:(one Gfh.bits) ~e:enable Gfh.bits in
+      let cnt = Seq.g_reg ~c:clear ~e:enable (Utils.clog2 cycles_per_codeword) in
+      let cnt_next = cnt#q +:. 1 in
+      let cnt_last = cnt#q ==:. (cycles_per_codeword-1) in
       let () = compile [
           sm [
             Start, [
-              eloc $==. 1;
+              cnt $==. 0;
               g_when start [
-                eloc $==. 2;
                 vld $==. 1;
+                cnt $== cnt_next;
                 next Run;
               ];
             ];
             Run, [
               vld $==. 1;
-              eloc $== (eloc#q +:. 1);
-              g_when (eloc#q ==:. (Gfh.n_elems-2)) [
-                eloc $==. 0;
-              ];
-              g_when (eloc#q ==:. 0) [
+              cnt $== cnt_next;
+              g_when cnt_last [
                 next Start;
               ];
             ];
           ];
         ] in
-      vld#q, eloc#q
+      Array.init p (fun i -> 
+        if ((cycles_per_codeword-1)*p + i) >= rp_n then mux2 cnt_last gnd vld#q else vld#q),
+      Array.init p (fun i ->
+        let init = B.consti Gfh.bits (1+i) in
+        Seq.reg_fb 
+          ~c:clear ~cv:init ~e:enable ~w:Gfh.bits 
+            (fun d -> mux2 cnt_last init (Gfh.modfs (ue d +:. p))))
 
     (* produces error location results in reverse order ie from [n_elem-2 ... 0] *)
     let pchien ~p ~clear ~enable ~start ~lambda = 
@@ -430,9 +439,7 @@ module Make
           lambda
       in
       let eval = Array.map (fun c -> tree 2 (reduce Gfh.(+:)) (Array.to_list c)) c in
-      let vld, eloc = chien_ctrl ~clear ~enable ~start in (* XXX FIX ME for parallel execution *)
-      let eloc = Array.init p (fun _ -> eloc) in
-      let evld = Array.init p (fun _ -> vld) in
+      let evld,eloc = chien_ctrl ~p ~clear ~enable ~start in 
       let eerr = Array.init p (fun j -> (eval.(j) ==:. 0) &: evld.(j)) in
       eval, eloc, evld, eerr
 
@@ -580,7 +587,7 @@ module Make
         let pipe ~n d = Seq.pipeline ~c:clear ~e:enable ~n d in
 
         (* syndromes *)
-        let syn = PSyndromes.f ~scale:0 
+        let syn = PSyndromes.f ~scale:syndrome_inv_root_scale
             { PSyndromes.I.clear; enable; 
               first=i.I.first; last=i.I.last; x=i.I.x } 
         in
