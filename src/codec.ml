@@ -422,7 +422,7 @@ module Make
       Array.init p (fun i ->
         let init = B.consti Gfh.bits (1+i) in
         Seq.reg_fb 
-          ~c:clear ~cv:init ~e:enable ~w:Gfh.bits 
+          ~c:clear ~cv:init ~e:(enable &: vld#q) ~w:Gfh.bits 
             (fun d -> mux2 cnt_last init (Gfh.modfs (ue d +:. p))))
 
     (* produces error location results in reverse order ie from [n_elem-2 ... 0] *)

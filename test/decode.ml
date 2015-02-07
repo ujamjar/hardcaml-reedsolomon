@@ -3,8 +3,9 @@ open HardCamlWaveLTerm.Api
 
 open Rsutil
 
+module N = struct let n = 4 end (* set the codeword level parallelism of the decoder *)
 module Hw = HardCamlReedsolomon.Codec.Make(Sw.Gp)(Sw.Rp)
-module Decoder = Hw.Decoder(struct let n = 1 end)
+module Decoder = Hw.Decoder(N)
 module Decode = Decoder.Decode
 module G = Interface.Gen(Decode.I)(Decode.O)
 
@@ -44,20 +45,25 @@ let test () =
   Printf.printf "f: "; dump fy;
 *)
 
+  let cycles_per_codeword = (n + N.n - 1) / N.n in
+  let offset = cycles_per_codeword * N.n - n in
+
   Cs.reset sim;
   i.enable := B.vdd;
   i.clear := B.vdd;
   Cs.cycle sim;
   i.clear := B.gnd;
 
-  let received = rev received in (* load data from highest power first *)
+  let recv = Array.concat [ rev received; Array.init offset (fun _ -> 0) ] in
 
   (* load received data *)
   i.first := B.vdd;
   i.load := B.vdd;
-  for j=0 to n-1 do
-    i.x.(0) := B.consti sbits received.(j);
-    if j=(n-1) then begin
+  for j=0 to cycles_per_codeword-1 do
+    for k=0 to N.n-1 do
+      i.x.(k) := B.consti sbits recv.(j*N.n+k);
+    done;
+    if j=(cycles_per_codeword-1) then begin
       i.last := B.vdd;
     end;
     Cs.cycle sim;
@@ -67,11 +73,13 @@ let test () =
   i.load := B.gnd;
 
   let ocnt = ref 0 in
-  let corrected = Array.init n (fun _ -> 0) in
-  while !ocnt < n do
+  let corrected = Array.init (cycles_per_codeword * N.n) (fun _ -> 0) in
+  while !ocnt < cycles_per_codeword do
     Cs.cycle sim;
     if B.to_int !(o.ordy) <> 0 then begin
-      corrected.(!ocnt) <- B.to_int !(o.corrected.(0));
+      for k=0 to N.n-1 do
+        corrected.(!ocnt*N.n+k) <- B.to_int !(o.corrected.(k));
+      done;
       incr ocnt;
     end
   done;
