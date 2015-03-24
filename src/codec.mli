@@ -100,12 +100,13 @@ module type S = sig
     module Decode : sig
       module I : interface clear enable load first last x{| |} end
       module O : interface 
-        (syn : PSyndromes.O)
+        (*(syn : PSyndromes.O)
         (bm : RiBM.O)
         (ch : PChien.O)
-        (fy : PForney.O)
+        (fy : PForney.O)*)
         corrected{| |}
         ordy
+        error_count
       end
       val f : t I.t -> t O.t
     end

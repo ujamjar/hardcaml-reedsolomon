@@ -74,12 +74,13 @@ module type S = sig
     module Decode : sig
       module I : interface clear enable load first last x{| |} end
       module O : interface 
-        (syn : PSyndromes.O)
+        (*(syn : PSyndromes.O)
         (bm : RiBM.O)
         (ch : PChien.O)
-        (fy : PForney.O)
+        (fy : PForney.O)*)
         corrected{| |}
         ordy
+        error_count
       end
       val f : t I.t -> t O.t
     end
@@ -557,7 +558,7 @@ module Make
       module O = interface q{|N.n|}[Gfh.bits] end
       let f i =
         let open I in
-        let fbits = 5 in (* XXX get actual size *)
+        let fbits = Utils.nbits cycles_per_codeword in 
         let felems = 1 lsl fbits in
         let wa = Seq.reg_fb ~c:i.clear ~e:i.wr ~w:fbits (fun d -> d +:. 1) -- "fifo_wa" in
         let ra = Seq.reg_fb ~c:i.clear ~e:i.rd ~w:fbits (fun d -> d +:. 1) -- "fifo_ra" in
@@ -573,12 +574,13 @@ module Make
     module Decode = struct
       module I = interface clear[1] enable[1] load[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
       module O = interface 
-        (syn : PSyndromes.O)
+        (*(syn : PSyndromes.O)
         (bm : RiBM.O)
         (ch : PChien.O)
-        (fy : PForney.O)
+        (fy : PForney.O)*)
         corrected{|N.n|}[Gfh.bits]
         ordy[1]
+        error_count[Gfh.bits]
       end
 
       let f i = 
@@ -624,8 +626,17 @@ module Make
         in
         let ordy = reg fy.PForney.O.frdy.(0) in
 
+        let error_count = Seq.reg_fb ~c:clear ~e:(enable &: fifo_re) ~w:Gfh.bits
+          (fun d -> 
+            let sum = 
+              reduce (+:) 
+                (Array.to_list (Array.map (fun x -> uresize x Gfh.bits) fy.PForney.O.ferr))
+            in
+            d +: sum)
+        in
+
         (* for now all submodule outputs *)
-        O.{ syn; bm; ch; fy; corrected; ordy }
+        O.{ (*syn; bm; ch; fy;*) corrected; ordy; error_count }
 
     end
 

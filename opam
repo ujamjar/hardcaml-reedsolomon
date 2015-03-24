@@ -11,6 +11,8 @@ remove: [
 depends: [
   "ocamlfind"
   "hardcaml"
+  "hardcaml-waveterm"
+  "hardcaml-examples"
   "reedsolomon"
 ]
 ocaml-version: [ >= "4.01.0" ]

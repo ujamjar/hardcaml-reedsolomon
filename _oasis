@@ -19,7 +19,12 @@ Library HardCamlReedsolomon
   BuildDepends:  hardcaml,hardcaml.syntax,reedsolomon
   XMETARequires: hardcaml,reedsolomon
 
+Flag testbenches
+  Description: Build the web demo (requires hardcaml)
+  Default: false
+
 Executable encode
+  Build$:             flag(testbenches)
   Path:               test
   MainIs:             encode.ml
   Custom:             true
@@ -28,6 +33,7 @@ Executable encode
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
 Executable syndromes
+  Build$:             flag(testbenches)
   Path:               test
   MainIs:             syndromes.ml
   Custom:             true
@@ -36,6 +42,7 @@ Executable syndromes
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
 Executable berlekamp
+  Build$:             flag(testbenches)
   Path:               test
   MainIs:             berlekamp.ml
   Custom:             true
@@ -44,6 +51,7 @@ Executable berlekamp
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
 Executable chien
+  Build$:             flag(testbenches)
   Path:               test
   MainIs:             chien.ml
   Custom:             true
@@ -52,6 +60,7 @@ Executable chien
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
 Executable forney
+  Build$:             flag(testbenches)
   Path:               test
   MainIs:             forney.ml
   Custom:             true
@@ -60,12 +69,29 @@ Executable forney
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
 
 Executable decode
+  Build$:             flag(testbenches)
   Path:               test
   MainIs:             decode.ml
   Custom:             true
   CompiledObject:     best
   Install:            false
   BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+
+Executable hcrsencode
+  Path:               test
+  MainIs:             hcrsencode.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-examples.app
+
+Executable hcrsdecode
+  Path:               test
+  MainIs:             hcrsdecode.ml
+  Custom:             true
+  CompiledObject:     best
+  Install:            false
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-examples.app
 
 SourceRepository master
   Type:     git
