@@ -5,7 +5,7 @@ Synopsis:    HardCaml Reed-Solomon error correction CODEC
 Description: HardCaml Reed-Solomon error correction CODEC
 
 Authors:     Andy Ray
-Maintainers: Andy Ray <andy.ray@unjamjar.org>
+Maintainers: Andy Ray <andy.ray@ujamjar.com>
 Homepage:    https://github.com/ujamjar/hardcaml-reedsolomon
 License:     ISC
 Plugins:     META (0.4)
@@ -20,7 +20,7 @@ Library HardCamlReedsolomon
   XMETARequires: hardcaml,reedsolomon
 
 Flag testbenches
-  Description: Build the web demo (requires hardcaml)
+  Description: Build the testbenchs
   Default: false
 
 Executable encode

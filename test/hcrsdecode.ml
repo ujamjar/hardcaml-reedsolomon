@@ -193,7 +193,8 @@ Two further parameters are derived from *m* and *t*
             incr ccnt;
           end;
           S.cycle sim
-        done
+        done;
+        B.to_int !(o.error_count)
       in
 
       let n_codewords = ref 0 in
@@ -201,8 +202,8 @@ Two further parameters are derived from *m* and *t*
 
       (* decode until we have read the header *)
       while maxcodes () && B.width !dec_buffer < 32 do
-        decode_block ();
-        Printf.printf "decoded %i bits for header\n%!" (B.width !dec_buffer);
+        let error_count = decode_block () in
+        Printf.printf "decoded %i bits for header [%i errors]\n%!" (B.width !dec_buffer) error_count;
         incr n_codewords;
       done;
     
@@ -213,9 +214,9 @@ Two further parameters are derived from *m* and *t*
 
       (* decode rest of file *)
       while maxcodes () && !decoded_bits < !file_size_bits do
-        decode_block ();
+        let error_count = decode_block () in
         decoded_bits := !decoded_bits + bits_per_data_block;
-        Printf.printf "decoded %i / %i bits\n%!" !decoded_bits !file_size_bits;
+        Printf.printf "decoded %i / %i bits [%i errors]\n%!" !decoded_bits !file_size_bits error_count;
         incr n_codewords;
       done;
 
