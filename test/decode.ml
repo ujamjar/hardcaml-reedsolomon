@@ -20,7 +20,7 @@ let test () =
   let open Decode.I in
   let open Decode.O in
 
-  let circ, sim, i, o = G.make "decode" Decode.f in
+  let circ, sim, i, o, _ = G.make "decode" Decode.f in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
 
   let codeword = codeword (message ()) in

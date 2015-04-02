@@ -163,8 +163,8 @@ block boundary.
           (* read parity *)
           i.ctrl := B.vdd;
           for j=0 to (t' * 2) - 1 do
-            add_enc_buffer !(o.q);
             S.cycle sim; 
+            add_enc_buffer !(o.q);
           done;
 
           encode_blocks ()

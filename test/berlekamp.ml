@@ -19,7 +19,7 @@ let test () =
   let open Bm.I in
   let open Bm.O in
 
-  let circ, sim, i, o = G.make "berlekamp" Bm.f in
+  let circ, sim, i, o, _ = G.make "berlekamp" Bm.f in
   let () = 
     if false then begin
       let f = open_out "test/bm.v" in

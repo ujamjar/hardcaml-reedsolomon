@@ -23,7 +23,7 @@ let test () =
   let open Hw.Encoder.I in
   let open Hw.Encoder.O in
 
-  let circ, sim, i, o = G.make "rs_encode" Hw.Encoder.f in
+  let circ, sim, i, o, _ = G.make "rs_encode" Hw.Encoder.f in
   let () = if false then HardCaml.Rtl.Verilog.write print_string circ in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
 

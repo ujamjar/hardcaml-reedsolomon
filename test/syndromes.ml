@@ -34,7 +34,7 @@ let test () =
   Printf.printf "sym=%i off=%i\n%!"
     cycles_per_codeword offset;
 
-  let circ, sim, i, o = G.make "syndromes" (PSyndromes.f ~scale:offset) in
+  let circ, sim, i, o, n = G.make "syndromes" (PSyndromes.f ~scale:offset) in
   let () = if false then HardCaml.Rtl.Verilog.write print_string circ in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
   

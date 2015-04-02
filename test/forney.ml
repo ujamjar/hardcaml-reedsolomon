@@ -20,7 +20,7 @@ let test () =
   let open Forney.I in
   let open Forney.O in
 
-  let circ, sim, i, o = G.make "forney" Forney.f in
+  let circ, sim, i, o, n = G.make "forney" Forney.f in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
 
   let codeword = codeword (message ()) in

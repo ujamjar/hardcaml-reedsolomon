@@ -19,7 +19,7 @@ let test () =
   let open Chien.I in
   let open Chien.O in
 
-  let circ, sim, i, o = G.make "chien" Chien.f in
+  let circ, sim, i, o, _ = G.make "chien" Chien.f in
   let sim, waves = Waveterm_sim.wrap ~cfg sim in
 
   let codeword = codeword (message ()) in
