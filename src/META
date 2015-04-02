@@ -1,6 +1,6 @@
 # OASIS_START
-# DO NOT EDIT (digest: eecf7b17689e4f00fa2480752a82d256)
-version = "0.1"
+# DO NOT EDIT (digest: 9fa772071c8b1faad6893afff14ca05a)
+version = "0.2"
 description = "HardCaml Reed-Solomon error correction CODEC"
 requires = "hardcaml reedsolomon"
 archive(byte) = "HardCamlReedsolomon.cma"

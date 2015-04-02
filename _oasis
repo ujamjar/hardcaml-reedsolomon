@@ -1,6 +1,6 @@
 OASISFormat: 0.4
 Name:        hardcaml-reedsolomon
-Version:     0.1
+Version:     0.2
 Synopsis:    HardCaml Reed-Solomon error correction CODEC
 Description: HardCaml Reed-Solomon error correction CODEC
 
