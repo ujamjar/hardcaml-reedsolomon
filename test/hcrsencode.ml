@@ -117,7 +117,7 @@ block boundary.
 
     module Buf = Buf.Make(B)
 
-    let tb sim i o = 
+    let tb sim i o _ = 
       let open Rs.Encoder.I in
       let open Rs.Encoder.O in
       let module S = Cyclesim.Api in

@@ -118,7 +118,7 @@ Two further parameters are derived from *m* and *t*
 
     module Buf = Buf.Make(B)
 
-    let tb sim i o = 
+    let tb sim i o _ = 
       let open Decoder.Decode.I in
       let open Decoder.Decode.O in
       let module S = Cyclesim.Api in
