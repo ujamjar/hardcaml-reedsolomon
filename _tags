@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 7861a7673eaf31b7378bebd94b17f8f4)
+# DO NOT EDIT (digest: 58ffb1e2bf2cfb65fdba3600a43bfc09)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -66,19 +66,19 @@ true: annot, bin_annot
 <test/decode.{native,byte}>: custom
 # Executable hcrsencode
 <test/hcrsencode.{native,byte}>: pkg_hardcaml
-<test/hcrsencode.{native,byte}>: pkg_hardcaml-examples.app
+<test/hcrsencode.{native,byte}>: pkg_hardcaml-framework.console
 <test/hcrsencode.{native,byte}>: pkg_hardcaml.syntax
 <test/hcrsencode.{native,byte}>: pkg_reedsolomon
 <test/hcrsencode.{native,byte}>: use_HardCamlReedsolomon
 <test/hcrsencode.{native,byte}>: custom
 # Executable hcrsdecode
 <test/hcrsdecode.{native,byte}>: pkg_hardcaml
-<test/hcrsdecode.{native,byte}>: pkg_hardcaml-examples.app
+<test/hcrsdecode.{native,byte}>: pkg_hardcaml-framework.console
 <test/hcrsdecode.{native,byte}>: pkg_hardcaml.syntax
 <test/hcrsdecode.{native,byte}>: pkg_reedsolomon
 <test/hcrsdecode.{native,byte}>: use_HardCamlReedsolomon
 <test/*.ml{,i,y}>: pkg_hardcaml
-<test/*.ml{,i,y}>: pkg_hardcaml-examples.app
+<test/*.ml{,i,y}>: pkg_hardcaml-framework.console
 <test/*.ml{,i,y}>: pkg_hardcaml.syntax
 <test/*.ml{,i,y}>: pkg_reedsolomon
 <test/*.ml{,i,y}>: use_HardCamlReedsolomon

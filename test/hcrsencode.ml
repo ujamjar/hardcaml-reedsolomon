@@ -1,5 +1,4 @@
-open HardCamlExamples
-open HardCamlExamplesApp
+open HardCamlFramework
 
 module Design = struct
 
@@ -183,5 +182,5 @@ block boundary.
 
 end
 
-module A = App.Make(Design)
+module A = HardCamlFrameworkConsole.App.Make(Design)
 

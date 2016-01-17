@@ -83,7 +83,7 @@ Executable hcrsencode
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-examples.app
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-framework.console
 
 Executable hcrsdecode
   Path:               test
@@ -91,7 +91,7 @@ Executable hcrsdecode
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-examples.app
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-framework.console
 
 SourceRepository master
   Type:     git

@@ -1,5 +1,4 @@
-open HardCamlExamples
-open HardCamlExamplesApp
+open HardCamlFramework
 
 module Design = struct
 
@@ -228,6 +227,6 @@ Two further parameters are derived from *m* and *t*
 
 end
 
-module A = App.Make(Design)
+module A = HardCamlFrameworkConsole.App.Make(Design)
 
 
