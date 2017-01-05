@@ -16,7 +16,7 @@ remove: [
 depends: [
   "ocamlfind"
   "hardcaml" { >= "1.2.0" & < "2.0.0" }
-  "hardcaml-waveterm" { >= "0.3.0" }
+  "hardcaml-waveterm" { >= "0.2.0" }
   "hardcaml-examples" { >= "0.3.0" }
   "reedsolomon"
 ]
