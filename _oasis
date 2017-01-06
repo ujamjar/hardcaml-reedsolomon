@@ -30,7 +30,7 @@ Executable encode
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm
 
 Executable syndromes
   Build$:             flag(testbenches)
@@ -39,7 +39,7 @@ Executable syndromes
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm
 
 Executable berlekamp
   Build$:             flag(testbenches)
@@ -48,7 +48,7 @@ Executable berlekamp
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm
 
 Executable chien
   Build$:             flag(testbenches)
@@ -57,7 +57,7 @@ Executable chien
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm
 
 Executable forney
   Build$:             flag(testbenches)
@@ -66,7 +66,7 @@ Executable forney
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm
 
 Executable decode
   Build$:             flag(testbenches)
@@ -75,7 +75,7 @@ Executable decode
   Custom:             true
   CompiledObject:     best
   Install:            false
-  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm.lterm
+  BuildDepends:       hardcaml-reedsolomon, hardcaml-waveterm
 
 Executable hcrsencode
   Path:               test

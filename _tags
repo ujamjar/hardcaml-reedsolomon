@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 58ffb1e2bf2cfb65fdba3600a43bfc09)
+# DO NOT EDIT (digest: eae7c33c4c5480bcb7ad1f4d31ea39ef)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -23,46 +23,46 @@ true: annot, bin_annot
 <src/*.ml{,i,y}>: pkg_reedsolomon
 # Executable encode
 <test/encode.{native,byte}>: pkg_hardcaml
-<test/encode.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/encode.{native,byte}>: pkg_hardcaml-waveterm
 <test/encode.{native,byte}>: pkg_hardcaml.syntax
 <test/encode.{native,byte}>: pkg_reedsolomon
 <test/encode.{native,byte}>: use_HardCamlReedsolomon
 <test/encode.{native,byte}>: custom
 # Executable syndromes
 <test/syndromes.{native,byte}>: pkg_hardcaml
-<test/syndromes.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/syndromes.{native,byte}>: pkg_hardcaml-waveterm
 <test/syndromes.{native,byte}>: pkg_hardcaml.syntax
 <test/syndromes.{native,byte}>: pkg_reedsolomon
 <test/syndromes.{native,byte}>: use_HardCamlReedsolomon
 <test/syndromes.{native,byte}>: custom
 # Executable berlekamp
 <test/berlekamp.{native,byte}>: pkg_hardcaml
-<test/berlekamp.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/berlekamp.{native,byte}>: pkg_hardcaml-waveterm
 <test/berlekamp.{native,byte}>: pkg_hardcaml.syntax
 <test/berlekamp.{native,byte}>: pkg_reedsolomon
 <test/berlekamp.{native,byte}>: use_HardCamlReedsolomon
 <test/berlekamp.{native,byte}>: custom
 # Executable chien
 <test/chien.{native,byte}>: pkg_hardcaml
-<test/chien.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/chien.{native,byte}>: pkg_hardcaml-waveterm
 <test/chien.{native,byte}>: pkg_hardcaml.syntax
 <test/chien.{native,byte}>: pkg_reedsolomon
 <test/chien.{native,byte}>: use_HardCamlReedsolomon
 <test/chien.{native,byte}>: custom
 # Executable forney
 <test/forney.{native,byte}>: pkg_hardcaml
-<test/forney.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/forney.{native,byte}>: pkg_hardcaml-waveterm
 <test/forney.{native,byte}>: pkg_hardcaml.syntax
 <test/forney.{native,byte}>: pkg_reedsolomon
 <test/forney.{native,byte}>: use_HardCamlReedsolomon
 <test/forney.{native,byte}>: custom
 # Executable decode
 <test/decode.{native,byte}>: pkg_hardcaml
-<test/decode.{native,byte}>: pkg_hardcaml-waveterm.lterm
+<test/decode.{native,byte}>: pkg_hardcaml-waveterm
 <test/decode.{native,byte}>: pkg_hardcaml.syntax
 <test/decode.{native,byte}>: pkg_reedsolomon
 <test/decode.{native,byte}>: use_HardCamlReedsolomon
-<test/*.ml{,i,y}>: pkg_hardcaml-waveterm.lterm
+<test/*.ml{,i,y}>: pkg_hardcaml-waveterm
 <test/decode.{native,byte}>: custom
 # Executable hcrsencode
 <test/hcrsencode.{native,byte}>: pkg_hardcaml
