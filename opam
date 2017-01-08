@@ -2,7 +2,7 @@ opam-version: "1.2"
 maintainer: "andy.ray@ujamjar.com"
 authors: "andy.ray@ujamjar.com"
 homepage: "https://github.com/ujamjar/hardcaml-reedsolomon"
-dev-repo: "https://github.com/ujamjar/hardcaml-reedsolomon"
+dev-repo: "https://github.com/ujamjar/hardcaml-reedsolomon.git"
 bug-reports: "https://github.com/ujamjar/hardcaml-reedsolomon/issues"
 build: [
   [make "all"]
@@ -17,7 +17,8 @@ depends: [
   "ocamlfind"
   "hardcaml" { >= "1.2.0" & < "2.0.0" }
   "hardcaml-waveterm" { >= "0.2.0" }
-  "hardcaml-examples" { >= "0.3.0" }
+  "hardcaml-framework" { >= "0.3.0" }
+  "ppx_deriving_hardcaml" { >= "1.2" }
   "reedsolomon"
 ]
 available: [ ocaml-version >= "4.02.0" ]
