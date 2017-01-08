@@ -14,7 +14,8 @@ remove: [
   [make "uninstall"]
 ]
 depends: [
-  "ocamlfind"
+  "ocamlfind" {build}
+  "ocamlbuild" {build}
   "hardcaml" { >= "1.2.0" & < "2.0.0" }
   "hardcaml-waveterm" { >= "0.2.0" }
   "hardcaml-framework" { >= "0.3.0" }
