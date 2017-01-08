@@ -16,7 +16,7 @@ Library HardCamlReedsolomon
   Findlibname:   hardcaml-reedsolomon
   Pack:          true
   Modules:       Galois, Codec
-  BuildDepends:  hardcaml,hardcaml.syntax,reedsolomon
+  BuildDepends:  hardcaml,ppx_deriving_hardcaml,reedsolomon
   XMETARequires: hardcaml,reedsolomon
 
 Flag testbenches

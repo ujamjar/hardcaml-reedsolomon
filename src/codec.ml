@@ -13,8 +13,12 @@ module type S = sig
 
   module Encoder : sig
     val encoder : enable:t -> ctrl:t -> d_in:t -> t
-    module I : interface enable ctrl d end
-    module O : interface q end
+    module I : sig
+      type 'a t = { enable : 'a; ctrl : 'a; d : 'a; }[@@deriving hardcaml]
+    end
+    module O : sig
+      type 'a t = { q : 'a; }[@@deriving hardcaml]
+    end
     val f : t I.t -> t O.t 
   end
 
@@ -27,8 +31,12 @@ module type S = sig
     val psyndromes : scale:int -> clear:t -> enable:t -> first:t -> last:t -> x:t array -> 
       t * t array
     module PSyndromes : sig
-      module I : interface clear enable first last x{| |} end
-      module O : interface valid syndromes{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; first : 'a; last : 'a; x : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { valid : 'a; syndromes : 'a array;  }[@@deriving hardcaml]
+      end
       val f : scale:int -> t I.t -> t O.t
     end
 
@@ -36,8 +44,12 @@ module type S = sig
     val riBM : clear:t -> enable:t -> start:t -> syndromes:t list -> t list
     val rriBM : clear:t -> enable:t -> first:t -> last:t -> syndromes:t list -> t list * t list
     module RiBM : sig
-      module I : interface clear enable first last syndromes{| |} end
-      module O : interface w{| |} l{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; first : 'a; last : 'a; syndromes : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { w : 'a array;  l : 'a array;  }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
@@ -45,42 +57,62 @@ module type S = sig
     val pchien : p:int -> clear:t -> enable:t -> start:t -> lambda:t array -> 
       t array * t array * t array * t array
     module PChien : sig
-      module I : interface clear enable start lambda{| |}  end
-      module O : interface eval{| |} eloc{| |} evld{| |} eerr{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; start : 'a; lambda : 'a array;   }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { eval : 'a array;  eloc : 'a array;  evld : 'a array;  eerr : 'a array;  }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     val forney_serial : clear:t -> enable:t -> start:t -> store:t -> ctrl:t -> tap:t -> x:t -> t
     module Forney_serial : sig
-      module I : interface clear enable start store ctrl tap x end
-      module O : interface e end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; start : 'a; store : 'a; ctrl : 'a; tap : 'a; x : 'a; }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { e : 'a; }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     val forney : clear:t -> enable:t -> vld:t -> err:t -> 
       v:t array -> l:t array -> x:t -> t * t * t
     module Forney : sig
-      module I : interface clear enable vld err v{| |} l{| |} x end
-      module O : interface emag frdy ferr end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; vld : 'a; err : 'a; v : 'a array;  l : 'a array;  x : 'a; }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { emag : 'a; frdy : 'a; ferr : 'a; }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     module PForney : sig
-      module I : interface clear enable vld{| |} err{| |} v{| |} l{| |} x{| |} end
-      module O : interface emag{| |} frdy{| |} ferr{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; vld : 'a array;  err : 'a array;  v : 'a array;  l : 'a array;  x : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { emag : 'a array;  frdy : 'a array;  ferr : 'a array;  }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     module Decode : sig
-      module I : interface clear enable load first last x{| |} end
-      module O : interface 
-        (*(syn : PSyndromes.O)
-        (bm : RiBM.O)
-        (ch : PChien.O)
-        (fy : PForney.O)*)
-        corrected{| |}
-        ordy
-        error_count
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; load : 'a; first : 'a; last : 'a; x : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { 
+          (*(syn : PSyndromes.O)
+            (bm : RiBM.O)
+            (ch : PChien.O)
+            (fy : PForney.O)*)
+          corrected : 'a array; 
+          ordy : 'a;
+          error_count : 'a;
+        }[@@deriving hardcaml]
       end
       val f : t I.t -> t O.t
     end
@@ -88,8 +120,8 @@ module type S = sig
 end
 
 module Make
-  (Gp : Reedsolomon.Galois.Table.Params)
-  (Rp : Reedsolomon.Codec.RsParams) = struct
+    (Gp : Reedsolomon.Galois.Table.Params)
+    (Rp : Reedsolomon.Codec.RsParams) = struct
 
   module B = Signal.Comb
   module S = Signal.Seq
@@ -123,8 +155,12 @@ module Make
       q
 
     (* with interface *)
-    module I = interface enable[1] ctrl[1] d[Gfh.bits] end
-    module O = interface q[Gfh.bits] end
+    module I = struct
+      type 'a t = { enable : 'a[@bits 1]; ctrl : 'a[@bits 1]; d : 'a[@bits Gfh.bits]; }[@@deriving hardcaml]
+    end
+    module O = struct
+      type 'a t = { q : 'a[@bits Gfh.bits]; }[@@deriving hardcaml]
+    end
 
     let f i = O.({ q = I.(encoder i.enable i.ctrl i.d) })
 
@@ -202,14 +238,18 @@ module Make
             (if scale=0 then syndromes.(i) else (Gfh.cmul iroot syndromes.(i))))
 
     module PSyndromes = struct
-      module I = interface clear[1] enable[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
-      module O = interface valid[1] syndromes{|2*Rp.t|}[Gfh.bits] end
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; first : 'a[@bits 1]; last : 'a[@bits 1]; x : 'a array[@length N.n][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
+      module O = struct
+        type 'a t = { valid : 'a[@bits 1]; syndromes : 'a array[@length 2*Rp.t][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
       let f ~scale i = 
         let valid, syndromes = I.(psyndromes ~scale
-          ~clear:i.clear ~enable:i.enable 
-          ~first:i.first ~last:i.last ~x:i.x) 
-      in
-      O.({ valid; syndromes })
+                                    ~clear:i.clear ~enable:i.enable 
+                                    ~first:i.first ~last:i.last ~x:i.x) 
+        in
+        O.({ valid; syndromes })
     end
 
     (***********************************************************)
@@ -369,8 +409,12 @@ module Make
       List.map snd (Utils.lselect delta' Rp.t (2*Rp.t))
 
     module RiBM = struct
-      module I = interface clear[1] enable[1] first[1] last[1] syndromes{|2*Rp.t|}[Gfh.bits] end
-      module O = interface w{|Rp.t|}[Gfh.bits] l{|Rp.t+1|}[Gfh.bits] end
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; first : 'a[@bits 1]; last : 'a[@bits 1]; syndromes : 'a array[@length 2*Rp.t][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
+      module O = struct
+        type 'a t = { w : 'a array[@length Rp.t][@bits Gfh.bits]; l : 'a array[@length Rp.t+1][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
       let f i = 
         let w, l = I.(rriBM ~clear:i.clear ~enable:i.enable 
                       ~first:i.first ~last:i.last
@@ -445,9 +489,13 @@ module Make
       eval, eloc, evld, eerr
 
     module PChien = struct
-      module I = interface clear[1] enable[1] start[1] lambda{|Rp.t+1|}[Gfh.bits] end
-      module O = interface eval{|N.n|}[Gfh.bits] eloc{|N.n|}[Gfh.bits] 
-                           evld{|N.n|}[1] eerr{|N.n|}[1] end
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; start : 'a[@bits 1]; lambda : 'a array[@length Rp.t+1][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
+      module O = struct
+        type 'a t = { eval : 'a array[@length N.n][@bits Gfh.bits]; eloc : 'a array[@length N.n][@bits Gfh.bits]; 
+                      evld : 'a array[@length N.n][@bits 1]; eerr : 'a array[@length N.n][@bits 1]; }[@@deriving hardcaml]
+      end
       let f i = 
         let eval, eloc, evld, eerr = 
           I.(pchien ~p:N.n ~clear:i.clear ~enable:i.enable
@@ -482,9 +530,13 @@ module Make
       e
 
     module Forney_serial = struct
-      module I = interface clear[1] enable[1] start[1] store[1]
-                          ctrl[1] tap[Gfh.bits] x[Gfh.bits] end 
-      module O = interface e[Gfh.bits] end 
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; start : 'a[@bits 1]; store : 'a[@bits 1];
+                      ctrl : 'a[@bits 1]; tap : 'a[@bits Gfh.bits]; x : 'a[@bits Gfh.bits]; }[@@deriving hardcaml]
+      end 
+      module O = struct
+        type 'a t = { e : 'a[@bits Gfh.bits]; }[@@deriving hardcaml]
+      end 
       let f i = 
         let e = I.(forney_serial ~clear:i.clear ~enable:i.enable ~start:i.start
                                 ~store:i.store ~ctrl:i.ctrl ~tap:i.tap ~x:i.x)
@@ -524,9 +576,13 @@ module Make
       pipe (4+v_depth) err
 
     module Forney = struct
-      module I = interface clear[1] enable[1] vld[1] err[1]
-                           v{|Rp.t|}[Gfh.bits] l{|(Rp.t+1)/2|}[Gfh.bits] x[Gfh.bits] end 
-      module O = interface emag[Gfh.bits] frdy[1] ferr[1] end 
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; vld : 'a[@bits 1]; err : 'a[@bits 1];
+                      v : 'a array[@length Rp.t][@bits Gfh.bits]; l : 'a array[@length (Rp.t+1)/2][@bits Gfh.bits]; x : 'a[@bits Gfh.bits]; }[@@deriving hardcaml]
+      end 
+      module O = struct
+        type 'a t = { emag : 'a[@bits Gfh.bits]; frdy : 'a[@bits 1]; ferr : 'a[@bits 1]; }[@@deriving hardcaml]
+      end 
       let f i = 
         let emag, frdy, ferr = I.(forney ~clear:i.clear ~enable:i.enable 
                                          ~vld:i.vld ~err:i.err
@@ -535,14 +591,18 @@ module Make
     end
 
     module PForney = struct
-      module I = interface clear[1] enable[1] vld{|N.n|}[1] err{|N.n|}[1]
-                          v{|Rp.t|}[Gfh.bits] l{|(Rp.t+1)/2|}[Gfh.bits] 
-                          x{|N.n|}[Gfh.bits] end 
-      module O = interface emag{|N.n|}[Gfh.bits] frdy{|N.n|}[1] ferr{|N.n|}[1] end 
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; vld : 'a array[@length N.n][@bits 1]; err : 'a array[@length N.n][@bits 1];
+                      v : 'a array[@length Rp.t][@bits Gfh.bits]; l : 'a array[@length (Rp.t+1)/2][@bits Gfh.bits]; 
+                      x : 'a array[@length N.n][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end 
+      module O = struct
+        type 'a t = { emag : 'a array[@length N.n][@bits Gfh.bits]; frdy : 'a array[@length N.n][@bits 1]; ferr : 'a array[@length N.n][@bits 1]; }[@@deriving hardcaml]
+      end 
       let f i = 
         let o = 
           Array.init N.n (fun j ->
-            I.(forney ~clear:i.clear ~enable:i.enable ~vld:i.vld.(j) ~err:i.err.(j)
+              I.(forney ~clear:i.clear ~enable:i.enable ~vld:i.vld.(j) ~err:i.err.(j)
                       ~v:i.v ~l:i.l ~x:i.x.(j))) 
         in 
         O.({ emag=Array.map (fun (x,_,_) -> x) o; 
@@ -554,8 +614,12 @@ module Make
     (* input codeword store *)
 
     module Fifo = struct
-      module I = interface clear[1] wr[1] d{|N.n|}[Gfh.bits] rd[1] end
-      module O = interface q{|N.n|}[Gfh.bits] end
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; wr : 'a[@bits 1]; d : 'a array[@length N.n][@bits Gfh.bits]; rd : 'a[@bits 1]; }[@@deriving hardcaml]
+      end
+      module O = struct
+        type 'a t = { q : 'a array[@length N.n][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
       let f i =
         let open I in
         let fbits = Utils.nbits cycles_per_codeword in 
@@ -572,15 +636,19 @@ module Make
     (* decoder *)
 
     module Decode = struct
-      module I = interface clear[1] enable[1] load[1] first[1] last[1] x{|N.n|}[Gfh.bits] end
-      module O = interface 
-        (*(syn : PSyndromes.O)
-        (bm : RiBM.O)
-        (ch : PChien.O)
-        (fy : PForney.O)*)
-        corrected{|N.n|}[Gfh.bits]
-        ordy[1]
-        error_count[Gfh.bits]
+      module I = struct
+        type 'a t = { clear : 'a[@bits 1]; enable : 'a[@bits 1]; load : 'a[@bits 1]; first : 'a[@bits 1]; last : 'a[@bits 1]; x : 'a array[@length N.n][@bits Gfh.bits]; }[@@deriving hardcaml]
+      end
+      module O = struct
+        type 'a t = { 
+          (*(syn : PSyndromes.O)
+            (bm : RiBM.O)
+            (ch : PChien.O)
+            (fy : PForney.O)*)
+          corrected : 'a array[@length N.n][@bits Gfh.bits];
+          ordy : 'a[@bits 1];
+          error_count : 'a[@bits Gfh.bits];
+        }[@@deriving hardcaml]
       end
 
       let f i = 

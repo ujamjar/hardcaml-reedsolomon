@@ -6,8 +6,12 @@ module type S = sig
 
   module Encoder : sig
     val encoder : enable:t -> ctrl:t -> d_in:t -> t
-    module I : interface enable ctrl d end
-    module O : interface q end
+    module I : sig
+      type 'a t = { enable : 'a; ctrl : 'a; d : 'a; }[@@deriving hardcaml]
+    end
+    module O : sig
+      type 'a t = { q : 'a; }[@@deriving hardcaml]
+    end
     val f : t I.t -> t O.t 
   end
 
@@ -47,8 +51,12 @@ module type S = sig
       t * t array
 
     module PSyndromes : sig
-      module I : interface clear enable first last x{| |} end
-      module O : interface valid syndromes{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; first : 'a; last : 'a; x : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { valid : 'a; syndromes : 'a array;  }[@@deriving hardcaml]
+      end
       val f : scale:int -> t I.t -> t O.t
     end
 
@@ -58,8 +66,12 @@ module type S = sig
     val rriBM : clear:t -> enable:t -> first:t -> last:t -> syndromes:t list -> t list * t list
 
     module RiBM : sig
-      module I : interface clear enable first last syndromes{| |} end
-      module O : interface w{| |} l{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; first : 'a; last : 'a; syndromes : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { w : 'a array;  l : 'a array;  }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
@@ -69,8 +81,12 @@ module type S = sig
       t array * t array * t array * t array
 
     module PChien : sig
-      module I : interface clear enable start lambda{| |}  end
-      module O : interface eval{| |} eloc{| |} evld{| |} eerr{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; start : 'a; lambda : 'a array;   }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { eval : 'a array;  eloc : 'a array;  evld : 'a array;  eerr : 'a array;  }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
@@ -78,35 +94,51 @@ module type S = sig
     val forney_serial : clear:t -> enable:t -> start:t -> store:t -> ctrl:t -> tap:t -> x:t -> t
 
     module Forney_serial : sig
-      module I : interface clear enable start store ctrl tap x end
-      module O : interface e end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; start : 'a; store : 'a; ctrl : 'a; tap : 'a; x : 'a; }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { e : 'a; }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     val forney : clear:t -> enable:t -> vld:t -> err:t -> 
       v:t array -> l:t array -> x:t -> t * t * t
     module Forney : sig
-      module I : interface clear enable vld err v{| |} l{| |} x end
-      module O : interface emag frdy ferr end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; vld : 'a; err : 'a; v : 'a array;  l : 'a array;  x : 'a; }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { emag : 'a; frdy : 'a; ferr : 'a; }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     module PForney : sig
-      module I : interface clear enable vld{| |} err{| |} v{| |} l{| |} x{| |} end
-      module O : interface emag{| |} frdy{| |} ferr{| |} end
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; vld : 'a array;  err : 'a array;  v : 'a array;  l : 'a array;  x : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+        type 'a t = { emag : 'a array;  frdy : 'a array;  ferr : 'a array;  }[@@deriving hardcaml]
+      end
       val f : t I.t -> t O.t
     end
 
     module Decode : sig
-      module I : interface clear enable load first last x{| |} end
-      module O : interface 
+      module I : sig
+        type 'a t = { clear : 'a; enable : 'a; load : 'a; first : 'a; last : 'a; x : 'a array;  }[@@deriving hardcaml]
+      end
+      module O : sig
+type 'a t = { 
         (*(syn : PSyndromes.O)
         (bm : RiBM.O)
         (ch : PChien.O)
         (fy : PForney.O)*)
-        corrected{| |}
-        ordy
-        error_count
+        corrected : 'a array; 
+        ordy : 'a;
+        error_count : 'a;
+}[@@deriving hardcaml]
       end
       val f : t I.t -> t O.t
     end

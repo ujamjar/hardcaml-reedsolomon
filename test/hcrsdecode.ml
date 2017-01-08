@@ -46,7 +46,7 @@ Two further parameters are derived from *m* and *t*
 "
 
   module Hw_config = struct
-    include interface m t pp pe parallelism end
+    type 'a t = { m : 'a; t : 'a; pp : 'a; pe : 'a; parallelism : 'a; }[@@deriving hardcaml]
     let params = {
       m = Int 8, "Bits per symbol";
       t = Int 8, "Error correction capability";
@@ -57,7 +57,7 @@ Two further parameters are derived from *m* and *t*
   end
 
   module Tb_config = struct
-    include interface i o maxcodes end
+    type 'a t = { i : 'a; o : 'a; maxcodes : 'a; }[@@deriving hardcaml]
     let params = {
       i = String "", "Input file";
       o = String "", "Output file";

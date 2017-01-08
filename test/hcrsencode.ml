@@ -52,7 +52,9 @@ block boundary.
 "
 
   module Hw_config = struct
-    include interface m t pp pe end
+    include struct
+      type 'a t = { m : 'a; t : 'a; pp : 'a; pe : 'a; }[@@deriving hardcaml]
+    end
     let params = {
       m = Int 8, "Bits per symbol";
       t = Int 8, "Error correction capability";
@@ -62,7 +64,9 @@ block boundary.
   end
 
   module Tb_config = struct
-    include interface i o end
+    include struct
+      type 'a t = { i : 'a; o : 'a; }[@@deriving hardcaml]
+    end
     let params = {
       i = String "", "Input file";
       o = String "", "Output file";
