@@ -18,7 +18,7 @@ depends: [
   "hardcaml" { >= "1.2.0" & < "2.0.0" }
   "hardcaml-waveterm" { >= "0.2.0" }
   "hardcaml-framework" { >= "0.3.0" }
-  "ppx_deriving_hardcaml" { >= "1.2" }
+  "ppx_deriving_hardcaml" { >= "1.1.0" }
   "reedsolomon"
 ]
 available: [ ocaml-version >= "4.02.0" ]
