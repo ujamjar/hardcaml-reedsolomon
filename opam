@@ -4,15 +4,7 @@ authors: "andy.ray@ujamjar.com"
 homepage: "https://github.com/ujamjar/hardcaml-reedsolomon"
 dev-repo: "https://github.com/ujamjar/hardcaml-reedsolomon.git"
 bug-reports: "https://github.com/ujamjar/hardcaml-reedsolomon/issues"
-build: [
-  [make "all"]
-]
-install: [
-  [make "install"]
-]
-remove: [
-  [make "uninstall"]
-]
+build: [ ["ocaml" "pkg/pkg.ml" "build"] ]
 depends: [
   "ocamlfind" {build}
   "ocamlbuild" {build}
@@ -24,7 +16,7 @@ depends: [
 ]
 available: [ ocaml-version >= "4.02.0" ]
 name: "hardcaml-reedsolomon"
-version: "0.3.2"
+version: "0.3.3"
 license: "ISC"
 substs:[ "pkg/META" ]
 
