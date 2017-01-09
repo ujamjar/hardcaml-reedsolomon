@@ -1,0 +1,9 @@
+version = "%{version}%"
+description = "HardCaml Reed-Solomon error correction CODEC"
+requires = "hardcaml reedsolomon"
+archive(byte) = "HardCamlReedsolomon.cma"
+archive(byte, plugin) = "HardCamlReedsolomon.cma"
+archive(native) = "HardCamlReedsolomon.cmxa"
+archive(native, plugin) = "HardCamlReedsolomon.cmxs"
+exists_if = "HardCamlReedsolomon.cma"
+

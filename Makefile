@@ -8,29 +8,31 @@
 #
 ########################################
 
-.PHONY: clean all install uninstall 
+.PHONY: all build clean tag prepare publish
 
-BUILD_OPTS=
+all: build
 
-all: setup.data
-	ocaml setup.ml -build
-
-setup.ml: _oasis
-	oasis setup
-
-setup.data: setup.ml
-	ocaml setup.ml -configure
-
-install: all
-	ocaml setup.ml -install
-
-uninstall: 
-	ocamlfind remove hardcaml-reedsolomon
+build:
+	cp pkg/META.in pkg/META
+	ocaml pkg/pkg.ml build
 
 clean:
-	ocaml setup.ml -clean
+	ocaml pkg/pkg.ml clean
 	- rm -f *.vcd *.vvp
 	- find . -name "*~" | xargs rm
 
-distclean: clean
-	- rm -f setup.data setup.log
+VERSION      := $$(opam query --version)
+NAME_VERSION := $$(opam query --name-version)
+ARCHIVE      := $$(opam query --archive)
+
+tag:
+	git tag -a "v$(VERSION)" -m "v$(VERSION)."
+	git push origin v$(VERSION)
+
+prepare:
+	opam publish prepare -r hardcaml $(NAME_VERSION) $(ARCHIVE)
+
+publish:
+	opam publish submit -r hardcaml $(NAME_VERSION)
+	rm -rf $(NAME_VERSION)
+

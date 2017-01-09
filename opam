@@ -23,3 +23,8 @@ depends: [
   "reedsolomon"
 ]
 available: [ ocaml-version >= "4.02.0" ]
+name: "hardcaml-reedsolomon"
+version: "0.3.2"
+license: "ISC"
+substs:[ "pkg/META" ]
+
