@@ -2,8 +2,9 @@ S src
 S test
 B _build
 PKG hardcaml
+PKG hardcaml-framework
+PKG hardcaml-examples
 PKG hardcaml-waveterm
-PKG hardcaml-waveterm.lterm
 PKG reedsolomon
 PKG lwt
 

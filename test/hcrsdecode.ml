@@ -7,7 +7,7 @@ module Design = struct
   open Param
 
   let name = "rsdecode"
-  let desc = "**HardCaml Reed-Solomon Decoder**
+  let desc = {|**HardCaml Reed-Solomon Decoder**
   
 Simulation and netlist generation of a Reed-Solomon decoder
 with configurable symbol size, error correction performance,
@@ -43,7 +43,7 @@ Two further parameters are derived from *m* and *t*
 *pe* primitive element specified as an integer
 
 *default: pp=285, pe=2*
-"
+|}
 
   module Hw_config = struct
     type 'a t = { m : 'a; t : 'a; pp : 'a; pe : 'a; parallelism : 'a; }[@@deriving hardcaml]

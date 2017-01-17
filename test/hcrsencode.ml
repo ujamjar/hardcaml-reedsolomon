@@ -7,7 +7,7 @@ module Design = struct
   open Param
 
   let name = "rsencode"
-  let desc = "**HardCaml Reed-Solomon Encoder**
+  let desc = {|**HardCaml Reed-Solomon Encoder**
 
 Simulation and netlist generation of a Reed-Solomon encoder
 with configurable symbol size, error correction performance
@@ -49,7 +49,7 @@ The rest are computed parity symbols.
 
 The final block will usually be padded with some zeros to reach a 
 block boundary.
-"
+|}
 
   module Hw_config = struct
     include struct
