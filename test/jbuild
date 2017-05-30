@@ -1,0 +1,5 @@
+(executables
+ ((names (hcrsencode hcrsdecode))
+  (public_names (hc-rsenc hc-rsdec))
+  (libraries (hardcaml-reedsolomon))
+  (preprocess (pps (ppx_deriving_omp ppx_deriving_hardcaml)))))

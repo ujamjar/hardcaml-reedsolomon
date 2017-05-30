@@ -1,0 +1,7 @@
+(jbuild_version 1)
+
+(library
+ ((name HardCamlReedsolomon)
+  (public_name hardcaml-reedsolomon)
+  (libraries (reedsolomon hardcaml hardcaml-framework.console))
+  (preprocess (pps (ppx_deriving_omp ppx_deriving_hardcaml)))))

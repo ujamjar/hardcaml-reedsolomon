@@ -13,13 +13,11 @@
 all: build
 
 build:
-	cp pkg/META.in pkg/META
-	ocaml pkg/pkg.ml build
+	jbuilder build @install
 
 clean:
-	ocaml pkg/pkg.ml clean
-	- rm -f *.vcd *.vvp
-	- find . -name "*~" | xargs rm
+	rm -fr _build
+	rm -f *.vcd *.vvp
 
 VERSION      := $$(opam query --version)
 NAME_VERSION := $$(opam query --name-version)

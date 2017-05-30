@@ -4,3 +4,5 @@ _build/
 vlog_test/
 *.rse
 *.rsd
+.merlin
+*.install
